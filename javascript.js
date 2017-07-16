@@ -70,5 +70,9 @@ CanvasDisplay.prototype.drawActors = function() {
 	// empty
 };
 
+function Level() {
+
+};
+
 //var game = new CanvasDisplay(document.body);
 //game.drawFrame(0);
