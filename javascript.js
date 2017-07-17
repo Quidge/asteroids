@@ -40,12 +40,27 @@ CanvasDisplay.prototype.drawActors = function() {
 };
 
 function Level() {
-	this.actors = [];
 	this.width = 600;
 	this.length = 600;
 	// each actor present in actor is expected to have a position and size
 	this.actors = [];	
 	
+};
+
+// Begin different actor types
+function Asteroid(pos, size, rotation, speed) {
+	this.pos = pos;
+	this.size = size;
+	this.rotation = rotation;
+	this.speed = speed;
+}
+Asteroid.prototype.type = "asteroid";
+Asteroid.prototype.fracture = function() {
+	if (this.size > 20) {
+		return //an array with 2-3 spawned child asteroids
+	} else
+		// if an asteroid is under a certain size, it won't split smaller
+		return false;
 };
 
 // helper stuff
