@@ -20,6 +20,7 @@
 * position (vector)
 * size (vector)
 * speed (vector)
+* orient(ation) (in radians)
 #### Methods
 * shoot
 #### Properties
@@ -39,8 +40,8 @@
 ### Missiles
 #### Vars
 * position (vector)
-* position (vector)
-* speed (vector)
+* size (vector)
+* speed
 #### Methods
 * fizzle
 #### Properties

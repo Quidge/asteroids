@@ -56,11 +56,32 @@ function Asteroid(pos, size, rotation, speed) {
 }
 Asteroid.prototype.type = "asteroid";
 Asteroid.prototype.fracture = function() {
-	if (this.size > 20) {
+	if (this.size > 2) {
 		return //an array with 2-3 spawned child asteroids
 	} else
 		// if an asteroid is under a certain size, it won't split smaller
 		return false;
+};
+
+function Player(pos) {
+	this.pos = pos;
+	this.size = new Vector(2, 2);
+	this.speed = new Vector(0, 0);
+	this.orient = 0; //begin pointing east
+}
+Player.prototype.type = "player";
+Player.prototype.shoot = function() {
+	return // new Missile(stuff);
+};
+
+function Missile(pos) {
+	this.pos = pos;
+	this.size = new Vector(.2, .2);
+	this.speed = 20; 
+}
+Missile.prototype.type = "missile";
+Missile.prototype.fizzle = function() {
+	return; //not sure what to do here
 };
 
 // helper stuff
