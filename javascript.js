@@ -1,6 +1,6 @@
 
 // CanvasDisplay constructor
-function CanvasDisplay(parent) {
+function CanvasDisplay(parent, level) {
 	this.canvas = document.createElement("canvas");
 	this.canvas.width = 600;
 	this.canvas.height = 600;
@@ -9,12 +9,13 @@ function CanvasDisplay(parent) {
 	
 	this.animationTime = 0;
 	
+	this.level = level;
+	
 } 
 // Begin CanvasDisplay methods
 CanvasDisplay.prototype.clear = function() {
 	this.canvas.parentNode.removeChild(this.canvas);
-}
-
+};
 CanvasDisplay.prototype.drawFrame = function(step) {
 	// step will be the elapsed time since last frame
 	this.animationTime += step;
@@ -33,11 +34,18 @@ CanvasDisplay.prototype.drawBackground = function() {
 	this.cx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
 };
 CanvasDisplay.prototype.drawActors = function() {
-	// empty
+	for (var i = 0; i < this.level.actors.length; i++) {
+		// draw each actor
+	}; 
 };
 
 function Level() {
-
+	this.actors = [];
+	this.width = 600;
+	this.length = 600;
+	// each actor present in actor is expected to have a position and size
+	this.actors = [];	
+	
 };
 
 //var game = new CanvasDisplay(document.body);
