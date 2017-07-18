@@ -35,7 +35,19 @@ CanvasDisplay.prototype.drawBackground = function() {
 };
 CanvasDisplay.prototype.drawActors = function() {
 	for (var i = 0; i < this.level.actors.length; i++) {
-		// draw each actor
+		
+		var actor = this.level.actors[i];
+		
+		if (actor.type == "player") {
+			
+			/*//forward tip of ship is "real" location of ship according to level
+			this.cx.moveTo(actor.pos.x, actor.pos.y);
+			this.cx.lineTo
+			this.
+			*/
+			this.cx.strokeRect(actor.pos.x, actor.pos.y,
+								actor.size.x, actor.size.y);
+		}
 	}; 
 };
 
@@ -65,7 +77,7 @@ Asteroid.prototype.fracture = function() {
 
 function Player(pos) {
 	this.pos = pos;
-	this.size = new Vector(2, 2);
+	this.size = new Vector(20, 20);
 	this.speed = new Vector(0, 0);
 	this.orient = 0; //begin pointing east
 }
@@ -76,7 +88,7 @@ Player.prototype.shoot = function() {
 
 function Missile(pos) {
 	this.pos = pos;
-	this.size = new Vector(.2, .2);
+	this.size = new Vector(2, 2);
 	this.speed = 20; 
 }
 Missile.prototype.type = "missile";
@@ -95,5 +107,8 @@ Vector.prototype.times = function(factor) {
 	return new Vector(this.x * factor, this.y * factor);
 };
 
-//var game = new CanvasDisplay(document.body);
+//var justShip = new Level();
+//justShip.actors.push(new Player(new Vector(300,300)));
+
+//var game = new CanvasDisplay(document.body, justShip);
 //game.drawFrame(0);
