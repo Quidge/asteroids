@@ -40,13 +40,32 @@ CanvasDisplay.prototype.drawActors = function() {
 		
 		if (actor.type == "player") {
 			
-			/*//forward tip of ship is "real" location of ship according to level
-			this.cx.moveTo(actor.pos.x, actor.pos.y);
-			this.cx.lineTo
-			this.
-			*/
-			this.cx.strokeRect(actor.pos.x, actor.pos.y,
-								actor.size.x, actor.size.y);
+			//var cwFlareAngle = actor.orient - Math.PI + atan(2);
+			//var ccwFlareAngle = actor.orient - Math.PI - atan(2); 
+			
+			//forward tip of ship is "real" location of ship according to level
+			this.cx.save();
+			this.cx.translate(actor.pos.x, actor.pos.y);
+			this.cx.rotate(actor.orient);
+			
+			this.cx.beginPath();
+			this.cx.moveTo(0, 0);
+			//this.cx.lineTo(cos(atan(2) - Math.PI) * actor.size.y,
+			//				sin(atan(2) - Math.PI) * actor.size.y);
+			//this.cx.lineTo(cos(-atan(2) - Math.PI) * actor.size.y,
+			//				sin(-atan(2) - Math.PI) * actor.size.y);
+			//this.cx.lineTo(0,0);
+			this.cx.lineTo(actor.size.x/2, -actor.size.y);
+			this.cx.lineTo(-actor.size.x/2, -actor.size.y);
+			this.cx.lineTo(0,0);
+			this.cx.stroke();
+			this.cx.closePath();
+			this.cx.restore();
+			
+			
+			
+			//this.cx.strokeRect(actor.pos.x, actor.pos.y,
+			//					actor.size.x, actor.size.y);
 		}
 	}; 
 };
@@ -79,7 +98,7 @@ function Player(pos) {
 	this.pos = pos;
 	this.size = new Vector(20, 20);
 	this.speed = new Vector(0, 0);
-	this.orient = 0; //begin pointing east
+	this.orient = 0.5*Math.PI; //begin pointing north
 }
 Player.prototype.type = "player";
 Player.prototype.shoot = function() {
@@ -107,8 +126,8 @@ Vector.prototype.times = function(factor) {
 	return new Vector(this.x * factor, this.y * factor);
 };
 
-//var justShip = new Level();
-//justShip.actors.push(new Player(new Vector(300,300)));
+var justShip = new Level();
+justShip.actors.push(new Player(new Vector(300,300)));
 
-//var game = new CanvasDisplay(document.body, justShip);
-//game.drawFrame(0);
+var game = new CanvasDisplay(document.body, justShip);
+game.drawFrame(0);
