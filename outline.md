@@ -19,6 +19,18 @@
 * plus
 * times
 
+### runLevel (function itself)
+* takes level object and Display constructor
+* creates new object from passed Display constructor
+* in charge of using runAnimation
+
+### runGame (function itself)
+* takes Display constructor
+* constructs new Level object 
+* pushes a new Player actor to actors in the newly created Level object
+* runs runLevel with the level object and passed Display constructor
+
+
 ### runAnimation (function itself)
 ### arrowCodes (global var)
 * stores keys to search through when keydown or keyup event is heard
