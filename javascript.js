@@ -135,6 +135,37 @@ Vector.prototype.times = function(factor) {
 	return new Vector(this.x * factor, this.y * factor);
 };
 
+function runAnimation(frameFunc) {
+	var lastTime = null;
+	function frame(time) {
+		var stop = false;
+		if (lastTime != null) {
+			// this will break frames into a max of 100 milliseconds
+			var timeStep = Math.min(time - lastTime, 100) / 1000;
+		}
+		lastTime = time;
+		if (!stop)
+			requestAnimationFrame(frame);
+	}
+	requestAnimationFrame(frame);
+}
+
+var arrowCodes = {37: "left", 39: "right"}
+
+function trackKeys(codes) {
+	var pressed = Object.create(null);
+	function handler(event) {
+		var down = event.type == "keydown";
+		pressed[codes[event.keyCode]] = down;
+		event.preventDefault();
+	}
+	addEventListener("keydown", handler);
+	addEventListener("keyup", handler);
+	return pressed;
+}
+
+// end helper stuff
+
 var justShip = new Level();
 justShip.actors.push(new Player(new Vector(0,0)));
 
