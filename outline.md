@@ -6,6 +6,10 @@
 * height
 * origin (middle of length and height)
 * player
+* status (game running, game ended, etc; default is null (running)
+#### Methods:
+* animate  
+  * runs if actions this.status != null
 
 ## Helper stuff
 ### Vector

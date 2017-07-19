@@ -64,7 +64,24 @@ function Level() {
 	this.origin = new Vector(this.length/2, this.height/2);
 	// each actor present in actor is expected to have a position and size
 	this.actors = [];	
+	this.status = null;	
+}
+
+var maxStep = 0.05;
+
+// step will be time since last animation frame
+Level.prototype.animate = function(step, keys) {
+	if (this.status != null)
+		// end game in some way
 	
+	while (step > 0) {
+		var thisStep = Math.min(maxStep, step);
+		this.actors.forEach(function(actor) {
+			actor.act(thisStep, this, keys);
+		}, this);
+		// by decrementing step this way, animation frame times are chopped
+		step -= thisStep;
+	}
 };
 
 // Begin different actor types
