@@ -39,40 +39,29 @@ CanvasDisplay.prototype.drawActors = function() {
 		var actor = this.level.actors[i];
 		
 		if (actor.type == "player") {
-			
-			//var cwFlareAngle = actor.orient - Math.PI + atan(2);
-			//var ccwFlareAngle = actor.orient - Math.PI - atan(2); 
-			
-			//forward tip of ship is "real" location of ship according to level
+						
 			this.cx.save();
-			this.cx.translate(actor.pos.x, actor.pos.y);
+			//offsets to Level "origin"
+			this.cx.translate(this.level.origin.x, this.level.origin.y);
 			this.cx.rotate(actor.orient);
 			
 			this.cx.beginPath();
-			this.cx.moveTo(0, 0);
-			//this.cx.lineTo(cos(atan(2) - Math.PI) * actor.size.y,
-			//				sin(atan(2) - Math.PI) * actor.size.y);
-			//this.cx.lineTo(cos(-atan(2) - Math.PI) * actor.size.y,
-			//				sin(-atan(2) - Math.PI) * actor.size.y);
-			//this.cx.lineTo(0,0);
-			this.cx.lineTo(actor.size.x/2, -actor.size.y);
-			this.cx.lineTo(-actor.size.x/2, -actor.size.y);
-			this.cx.lineTo(0,0);
-			this.cx.stroke();
+			this.cx.moveTo(actor.pos.x, actor.pos.y);
+			this.cx.lineTo(-actor.size.x/2, actor.size.y);
+			this.cx.lineTo(actor.size.x/2, actor.size.y);
 			this.cx.closePath();
+			this.cx.stroke();
+			
 			this.cx.restore();
-			
-			
-			
-			//this.cx.strokeRect(actor.pos.x, actor.pos.y,
-			//					actor.size.x, actor.size.y);
 		}
 	}; 
 };
 
 function Level() {
-	this.width = 600;
 	this.length = 600;
+	this.height = 600;
+	// game state default origin is in center of length and width
+	this.origin = new Vector(this.length/2, this.height/2);
 	// each actor present in actor is expected to have a position and size
 	this.actors = [];	
 	
@@ -96,9 +85,9 @@ Asteroid.prototype.fracture = function() {
 
 function Player(pos) {
 	this.pos = pos;
-	this.size = new Vector(20, 20);
+	this.size = new Vector(15, 20);
 	this.speed = new Vector(0, 0);
-	this.orient = 0.5*Math.PI; //begin pointing north
+	this.orient = 0; //begin pointing north
 }
 Player.prototype.type = "player";
 Player.prototype.shoot = function() {
@@ -127,7 +116,7 @@ Vector.prototype.times = function(factor) {
 };
 
 var justShip = new Level();
-justShip.actors.push(new Player(new Vector(300,300)));
+justShip.actors.push(new Player(new Vector(0,0)));
 
 var game = new CanvasDisplay(document.body, justShip);
 game.drawFrame(0);
