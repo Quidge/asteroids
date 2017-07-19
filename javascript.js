@@ -64,7 +64,24 @@ function Level() {
 	this.origin = new Vector(this.length/2, this.height/2);
 	// each actor present in actor is expected to have a position and size
 	this.actors = [];	
+	this.status = null;	
+}
+
+var maxStep = 0.05;
+
+// step will be time since last animation frame
+Level.prototype.animate = function(step, keys) {
+	if (this.status != null)
+		// end game in some way
 	
+	while (step > 0) {
+		var thisStep = Math.min(maxStep, step);
+		this.actors.forEach(function(actor) {
+			actor.act(thisStep, this, keys);
+		}, this);
+		// by decrementing step this way, animation frame times are chopped
+		step -= thisStep;
+	}
 };
 
 // Begin different actor types
@@ -86,12 +103,20 @@ Asteroid.prototype.fracture = function() {
 function Player(pos) {
 	this.pos = pos;
 	this.size = new Vector(15, 20);
+	this.turnSpeed = (10 / 180) * Math.PI; //turnSpeed in degrees
 	this.speed = new Vector(0, 0);
-	this.orient = 0; //begin pointing north
+	this.orient = 0; //in radians; begin pointing north
 }
 Player.prototype.type = "player";
-Player.prototype.turn = function(angle) {
-	this.orient = this.orient + Math.PI * (angle / 180);
+Player.prototype.act = function(step, level, keys) {
+	this.turn(step, keys);
+};
+Player.prototype.turn = function(step, keys) {
+	if (keys.left && !keys.right) {
+		this.orient -= this.turnSpeed * step;
+	} else if (!keys.left && keys.right) {
+		this.orient += this.turnSpeed * step;
+	}
 };
 Player.prototype.shoot = function() {
 	return // new Missile(stuff);
@@ -118,8 +143,40 @@ Vector.prototype.times = function(factor) {
 	return new Vector(this.x * factor, this.y * factor);
 };
 
+function runAnimation(frameFunc) {
+	var lastTime = null;
+	function frame(time) {
+		var stop = false;
+		if (lastTime != null) {
+			// this will break frames into a max of 100 milliseconds
+			var timeStep = Math.min(time - lastTime, 100) / 1000;
+		}
+		lastTime = time;
+		if (!stop)
+			requestAnimationFrame(frame);
+	}
+	requestAnimationFrame(frame);
+}
+
+var arrowCodes = {37: "left", 39: "right"}
+
+function trackKeys(codes) {
+	var pressed = Object.create(null);
+	function handler(event) {
+		var down = event.type == "keydown";
+		pressed[codes[event.keyCode]] = down;
+		event.preventDefault();
+	}
+	addEventListener("keydown", handler);
+	addEventListener("keyup", handler);
+	return pressed;
+}
+
+// end helper stuff
+
+/*
 var justShip = new Level();
 justShip.actors.push(new Player(new Vector(0,0)));
 
 var game = new CanvasDisplay(document.body, justShip);
-game.drawFrame(0);
+game.drawFrame(0);*/

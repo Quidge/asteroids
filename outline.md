@@ -6,6 +6,10 @@
 * height
 * origin (middle of length and height)
 * player
+* status (game running, game ended, etc; default is null (running)
+#### Methods:
+* animate  
+  * runs if actions this.status != null
 
 ## Helper stuff
 ### Vector
@@ -15,6 +19,13 @@
 * plus
 * times
 
+### runAnimation (function itself)
+### arrowCodes (global var)
+* stores keys to search through when keydown or keyup event is heard
+### trackKeys(codes) (function itself)
+* expects object list of keys and keycodes
+* returns object holding true or false for the keys in codes evaluating to "keydown"
+
 ## Actors
 
 ### Player
@@ -23,6 +34,7 @@
 * size (vector)
 * speed (vector)
 * orient(ation) (in radians)
+* turnSpeed
 #### Methods
 * shoot
 * turn
