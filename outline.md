@@ -25,6 +25,7 @@
 * orient(ation) (in radians)
 #### Methods
 * shoot
+* turn
 #### Properties
 * type ("player")
 
