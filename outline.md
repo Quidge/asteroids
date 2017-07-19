@@ -47,9 +47,12 @@
 * speed (vector)
 * orient(ation) (in radians)
 * turnSpeed
+* accel (the value which is used to determine at which Player.speed can increase)
 #### Methods
 * shoot
 * turn
+* jet (only allows motion in direction of Player.orient)
+* updatePosition (takes a step increment and vector. changes Player.pos based)
 #### Properties
 * type ("player")
 

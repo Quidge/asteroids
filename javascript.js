@@ -105,11 +105,15 @@ function Player(pos) {
 	this.size = new Vector(15, 20);
 	this.turnSpeed = (120 / 180) * Math.PI; //turnSpeed in degrees
 	this.speed = new Vector(0, 0);
+	this.accel = 3000;
 	this.orient = 0; //in radians; begin pointing north
 }
 Player.prototype.type = "player";
 Player.prototype.act = function(step, level, keys) {
 	this.turn(step, keys);
+	this.jet(step, keys);
+	this.updatePosition(step);
+	//this.jet(step, keys);
 };
 Player.prototype.turn = function(step, keys) {
 	if (keys.left && !keys.right) {
@@ -117,6 +121,18 @@ Player.prototype.turn = function(step, keys) {
 	} else if (!keys.left && keys.right) {
 		this.orient += this.turnSpeed * step;
 	}
+};
+Player.prototype.jet = function(step, keys) {
+	if (keys.up) {
+		var xChange = Math.cos(this.orient) * step * this.accel;
+		var yChange = Math.sin(this.orient) * step * this.accel;
+		var changeVector = new Vector(xChange, yChange);
+		this.speed.plus(changeVector);
+	}
+};
+Player.prototype.updatePosition = function(step) {
+	this.pos.x += this.speed.x * step;
+	this.pos.y += this.speed.y * step;
 };
 Player.prototype.shoot = function() {
 	return // new Missile(stuff);
@@ -160,7 +176,7 @@ function runAnimation(frameFunc) {
 	requestAnimationFrame(frame);
 }
 
-var arrowCodes = {37: "left", 39: "right"}
+var arrowCodes = {37: "left", 38: "up", 39: "right"}
 
 function trackKeys(codes) {
 	var pressed = Object.create(null);
