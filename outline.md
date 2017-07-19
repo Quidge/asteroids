@@ -2,7 +2,9 @@
 ## Level object
 #### Vars:
 * actors array
-* boundaries (top, bottom, left, right)
+* length
+* height
+* origin (middle of length and height)
 * player
 
 ## Helper stuff
