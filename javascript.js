@@ -90,6 +90,9 @@ function Player(pos) {
 	this.orient = 0; //begin pointing north
 }
 Player.prototype.type = "player";
+Player.prototype.turn = function(angle) {
+	this.orient = this.orient + Math.PI * (angle / 180);
+};
 Player.prototype.shoot = function() {
 	return // new Missile(stuff);
 };
