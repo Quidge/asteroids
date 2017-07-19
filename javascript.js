@@ -71,7 +71,7 @@ var maxStep = 0.05;
 
 // step will be time since last animation frame
 Level.prototype.animate = function(step, keys) {
-	if (this.status != null)
+	//if (this.status != null)
 		// end game in some way
 	
 	while (step > 0) {
@@ -103,7 +103,7 @@ Asteroid.prototype.fracture = function() {
 function Player(pos) {
 	this.pos = pos;
 	this.size = new Vector(15, 20);
-	this.turnSpeed = (10 / 180) * Math.PI; //turnSpeed in degrees
+	this.turnSpeed = (120 / 180) * Math.PI; //turnSpeed in degrees
 	this.speed = new Vector(0, 0);
 	this.orient = 0; //in radians; begin pointing north
 }
@@ -134,7 +134,8 @@ Missile.prototype.fizzle = function() {
 
 // helper stuff
 function Vector(x, y) {
-	this.x = x, this.y = y;
+	this.x = x;
+	this.y = y;
 }
 Vector.prototype.plus = function(other) {
 	return new Vector(this.x + other.x, this.y + other.y);
@@ -150,6 +151,7 @@ function runAnimation(frameFunc) {
 		if (lastTime != null) {
 			// this will break frames into a max of 100 milliseconds
 			var timeStep = Math.min(time - lastTime, 100) / 1000;
+			stop = frameFunc(timeStep) === false;
 		}
 		lastTime = time;
 		if (!stop)
@@ -172,11 +174,27 @@ function trackKeys(codes) {
 	return pressed;
 }
 
+var arrows = trackKeys(arrowCodes);
+
+function runLevel(level, Display) {
+	var display = new Display(document.body, level);
+	runAnimation(function(step) {
+		level.animate(step, arrows);
+		display.drawFrame(step);
+	});
+}
+
+function runGame(Display) {
+	var level = new Level();
+	level.actors.push(new Player(new Vector(0,0)));
+	runLevel(level, Display);
+}
+
 // end helper stuff
 
-/*
-var justShip = new Level();
-justShip.actors.push(new Player(new Vector(0,0)));
 
-var game = new CanvasDisplay(document.body, justShip);
-game.drawFrame(0);*/
+var simpleLevel = new Level();
+simpleLevel.actors.push(new Player(new Vector(0,0)));
+
+
+runGame(CanvasDisplay);
