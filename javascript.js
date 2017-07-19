@@ -103,12 +103,20 @@ Asteroid.prototype.fracture = function() {
 function Player(pos) {
 	this.pos = pos;
 	this.size = new Vector(15, 20);
+	this.turnSpeed = (10 / 180) * Math.PI; //turnSpeed in degrees
 	this.speed = new Vector(0, 0);
-	this.orient = 0; //begin pointing north
+	this.orient = 0; //in radians; begin pointing north
 }
 Player.prototype.type = "player";
-Player.prototype.turn = function(angle) {
-	this.orient = this.orient + Math.PI * (angle / 180);
+Player.prototype.act = function(step, level, keys) {
+	this.turn(step, keys);
+};
+Player.prototype.turn = function(step, keys) {
+	if (keys.left && !keys.right) {
+		this.orient -= this.turnSpeed * step;
+	} else if (!keys.left && keys.right) {
+		this.orient += this.turnSpeed * step;
+	}
 };
 Player.prototype.shoot = function() {
 	return // new Missile(stuff);
@@ -166,8 +174,9 @@ function trackKeys(codes) {
 
 // end helper stuff
 
+/*
 var justShip = new Level();
 justShip.actors.push(new Player(new Vector(0,0)));
 
 var game = new CanvasDisplay(document.body, justShip);
-game.drawFrame(0);
+game.drawFrame(0);*/

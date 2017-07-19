@@ -34,6 +34,7 @@
 * size (vector)
 * speed (vector)
 * orient(ation) (in radians)
+* turnSpeed
 #### Methods
 * shoot
 * turn
