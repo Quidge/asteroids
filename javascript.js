@@ -42,11 +42,12 @@ CanvasDisplay.prototype.drawActors = function() {
 						
 			this.cx.save();
 			//offsets to Level "origin"
-			this.cx.translate(this.level.origin.x, this.level.origin.y);
-			this.cx.rotate(actor.orient);
+			this.cx.translate(this.level.origin.x + actor.pos.x,
+								this.level.origin.y + actor.pos.y);
+			this.cx.rotate(actor.orient + 0.5*Math.PI);
 			
 			this.cx.beginPath();
-			this.cx.moveTo(actor.pos.x, actor.pos.y);
+			this.cx.moveTo(0,0);
 			this.cx.lineTo(-actor.size.x/2, actor.size.y);
 			this.cx.lineTo(actor.size.x/2, actor.size.y);
 			this.cx.closePath();
@@ -78,6 +79,7 @@ Level.prototype.animate = function(step, keys) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
+			console.log(actor.pos.x, actor.pos.y);
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
@@ -103,13 +105,16 @@ Asteroid.prototype.fracture = function() {
 function Player(pos) {
 	this.pos = pos;
 	this.size = new Vector(15, 20);
-	this.turnSpeed = (120 / 180) * Math.PI; //turnSpeed in degrees
-	this.speed = new Vector(0, 0);
+	this.turnSpeed = (180 / 180) * Math.PI; //turnSpeed in degrees
+	this.velocity = new Vector(0, 0); // direction ship is drifting in
+	this.accel = 100; // max velocity magnitude 
 	this.orient = 0; //in radians; begin pointing north
 }
 Player.prototype.type = "player";
 Player.prototype.act = function(step, level, keys) {
-	this.turn(step, keys);
+	this.turn(step, keys); // affects orientation
+	this.jet(step, keys); // affects velocity
+	this.updatePosition(); //applies new velocity to position
 };
 Player.prototype.turn = function(step, keys) {
 	if (keys.left && !keys.right) {
@@ -117,6 +122,18 @@ Player.prototype.turn = function(step, keys) {
 	} else if (!keys.left && keys.right) {
 		this.orient += this.turnSpeed * step;
 	}
+};
+Player.prototype.jet = function(step, keys) {
+	if (keys.up) {
+		var increment = step * this.accel;
+		var jetVelocity = new Vector(Math.cos(this.orient) * increment,
+									Math.sin(this.orient) * increment);
+		this.velocity = this.velocity.plus(jetVelocity);
+	}
+};
+Player.prototype.updatePosition = function() {
+	this.pos.x = this.pos.x + this.velocity.x;
+	this.pos.y = this.pos.y + this.velocity.y;
 };
 Player.prototype.shoot = function() {
 	return // new Missile(stuff);
@@ -160,7 +177,7 @@ function runAnimation(frameFunc) {
 	requestAnimationFrame(frame);
 }
 
-var arrowCodes = {37: "left", 39: "right"}
+var arrowCodes = {37: "left", 38: "up", 39: "right"}
 
 function trackKeys(codes) {
 	var pressed = Object.create(null);
