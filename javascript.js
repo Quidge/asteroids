@@ -39,6 +39,7 @@ CanvasDisplay.prototype.drawActors = function() {
 		var actor = this.level.actors[i];
 		
 		if (actor.type == "player") {
+			
 						
 			this.cx.save();
 			//offsets to Level "origin"
@@ -54,6 +55,7 @@ CanvasDisplay.prototype.drawActors = function() {
 			this.cx.stroke();
 			
 			this.cx.restore();
+			
 		}
 	}; 
 };
@@ -132,7 +134,6 @@ Player.prototype.jet = function(step, keys) {
 		var changeVector = new Vector(xChange, yChange);
 		this.speed.plus(changeVector);
 		*/
-		console.log('catching');
 		
 		this.speed.x = this.speed.x + Math.cos(this.orient) * this.accel;
 		this.speed.y = this.speed.y + Math.sin(this.orient) * this.accel;
