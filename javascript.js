@@ -44,7 +44,7 @@ CanvasDisplay.prototype.drawActors = function() {
 			//offsets to Level "origin"
 			this.cx.translate(this.level.origin.x + actor.pos.x,
 								this.level.origin.y + actor.pos.y);
-			this.cx.rotate(actor.orient);
+			this.cx.rotate(actor.orient + 0.5*Math.PI);
 			
 			this.cx.beginPath();
 			this.cx.moveTo(0,0);
@@ -105,16 +105,16 @@ Asteroid.prototype.fracture = function() {
 function Player(pos) {
 	this.pos = pos;
 	this.size = new Vector(15, 20);
-	this.turnSpeed = (120 / 180) * Math.PI; //turnSpeed in degrees
-	this.speed = new Vector(0, 0);
-	this.accel = 10;
+	this.turnSpeed = (180 / 180) * Math.PI; //turnSpeed in degrees
+	this.velocity = new Vector(0, 0); // direction ship is drifting in
+	this.accel = 100; // max velocity magnitude 
 	this.orient = 0; //in radians; begin pointing north
 }
 Player.prototype.type = "player";
 Player.prototype.act = function(step, level, keys) {
-	this.turn(step, keys);
-	//this.updatePosition(step);
-	this.jet(step, keys);
+	this.turn(step, keys); // affects orientation
+	this.jet(step, keys); // affects velocity
+	this.updatePosition(); //applies new velocity to position
 };
 Player.prototype.turn = function(step, keys) {
 	if (keys.left && !keys.right) {
@@ -125,28 +125,16 @@ Player.prototype.turn = function(step, keys) {
 };
 Player.prototype.jet = function(step, keys) {
 	if (keys.up) {
-		// i don't think these need step
-		/*
-		var xChange = Math.cos(this.orient) * this.accel * step;
-		var yChange = Math.sin(this.orient) * this.accel * step;
-		var changeVector = new Vector(xChange, yChange);
-		this.speed.plus(changeVector);
-		*/
-		console.log('catching');
-		
-		this.speed.x = this.speed.x + Math.cos(this.orient) * this.accel;
-		this.speed.y = this.speed.y + Math.sin(this.orient) * this.accel;
-		
-		var motion = new Vector(this.speed.x * step, this.speed.y * step);
-		
-		this.pos.x += motion.x;
-		this.pos.y += motion.y;
+		var increment = step * this.accel;
+		var jetVelocity = new Vector(Math.cos(this.orient) * increment,
+									Math.sin(this.orient) * increment);
+		this.velocity = this.velocity.plus(jetVelocity);
 	}
-};/*
-Player.prototype.updatePosition = function(step) {
-	this.pos.x = this.pos.x + this.speed.x * step;
-	this.pos.y += this.speed.y * step;
-};*/
+};
+Player.prototype.updatePosition = function() {
+	this.pos.x = this.pos.x + this.velocity.x;
+	this.pos.y = this.pos.y + this.velocity.y;
+};
 Player.prototype.shoot = function() {
 	return // new Missile(stuff);
 };

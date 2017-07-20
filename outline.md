@@ -42,16 +42,17 @@
 
 ### Player
 #### Vars
-* position (vector)
+* position (vector) (this is in reference to global origin)
+* velocity (vector) 
+* orient(ation) (in radians) (this is reference to global origin)
+###### Constants
 * size (vector)
-* speed (vector)
-* orient(ation) (in radians)
-* turnSpeed
+* turnSpeed (max speed player can turn 
 * accel (the value which is used to determine at which Player.speed can increase)
 #### Methods
-* shoot
 * turn
-* jet (only allows motion in direction of Player.orient)
+* jet (affects change in velocity)
+* updatePosition (takes new velocity and applies it to position)
 #### Properties
 * type ("player")
 
