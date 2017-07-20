@@ -52,7 +52,6 @@
 * shoot
 * turn
 * jet (only allows motion in direction of Player.orient)
-* updatePosition (takes a step increment and vector. changes Player.pos based)
 #### Properties
 * type ("player")
 

@@ -42,11 +42,12 @@ CanvasDisplay.prototype.drawActors = function() {
 						
 			this.cx.save();
 			//offsets to Level "origin"
-			this.cx.translate(this.level.origin.x, this.level.origin.y);
+			this.cx.translate(this.level.origin.x + actor.pos.x,
+								this.level.origin.y + actor.pos.y);
 			this.cx.rotate(actor.orient);
 			
 			this.cx.beginPath();
-			this.cx.moveTo(actor.pos.x, actor.pos.y);
+			this.cx.moveTo(0,0);
 			this.cx.lineTo(-actor.size.x/2, actor.size.y);
 			this.cx.lineTo(actor.size.x/2, actor.size.y);
 			this.cx.closePath();
@@ -78,6 +79,7 @@ Level.prototype.animate = function(step, keys) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
+			console.log(actor.pos.x, actor.pos.y);
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
@@ -105,15 +107,14 @@ function Player(pos) {
 	this.size = new Vector(15, 20);
 	this.turnSpeed = (120 / 180) * Math.PI; //turnSpeed in degrees
 	this.speed = new Vector(0, 0);
-	this.accel = 3000;
+	this.accel = 10;
 	this.orient = 0; //in radians; begin pointing north
 }
 Player.prototype.type = "player";
 Player.prototype.act = function(step, level, keys) {
 	this.turn(step, keys);
+	//this.updatePosition(step);
 	this.jet(step, keys);
-	this.updatePosition(step);
-	//this.jet(step, keys);
 };
 Player.prototype.turn = function(step, keys) {
 	if (keys.left && !keys.right) {
@@ -124,16 +125,28 @@ Player.prototype.turn = function(step, keys) {
 };
 Player.prototype.jet = function(step, keys) {
 	if (keys.up) {
-		var xChange = Math.cos(this.orient) * step * this.accel;
-		var yChange = Math.sin(this.orient) * step * this.accel;
+		// i don't think these need step
+		/*
+		var xChange = Math.cos(this.orient) * this.accel * step;
+		var yChange = Math.sin(this.orient) * this.accel * step;
 		var changeVector = new Vector(xChange, yChange);
 		this.speed.plus(changeVector);
+		*/
+		console.log('catching');
+		
+		this.speed.x = this.speed.x + Math.cos(this.orient) * this.accel;
+		this.speed.y = this.speed.y + Math.sin(this.orient) * this.accel;
+		
+		var motion = new Vector(this.speed.x * step, this.speed.y * step);
+		
+		this.pos.x += motion.x;
+		this.pos.y += motion.y;
 	}
-};
+};/*
 Player.prototype.updatePosition = function(step) {
-	this.pos.x += this.speed.x * step;
+	this.pos.x = this.pos.x + this.speed.x * step;
 	this.pos.y += this.speed.y * step;
-};
+};*/
 Player.prototype.shoot = function() {
 	return // new Missile(stuff);
 };
