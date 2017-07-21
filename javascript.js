@@ -69,6 +69,14 @@ function Level() {
 	this.status = null;	
 }
 
+Level.prototype.wallAt = function(actor) {
+	if (Math.abs(actor.pos.x) > this.length/2)
+		actor.pos = actor.pos.times(-1);
+	if (Math.abs(actor.pos.y) > this.height/2)
+		actor.pos = actor.pos.times(-1); 
+};
+
+
 var maxStep = 0.05;
 
 // step will be time since last animation frame
@@ -80,6 +88,8 @@ Level.prototype.animate = function(step, keys) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
+			console.log(actor.pos.x, actor.pos.y);
+			this.wallAt(actor); // applies -1 scaler to actor pos vector
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
@@ -105,6 +115,7 @@ Asteroid.prototype.fracture = function() {
 function Player(pos) {
 	this.pos = pos;
 	this.size = new Vector(15, 20);
+	this.hitRadius = Math.max(this.size.x, this.size.y) / 2;
 	this.turnSpeed = (180 / 180) * Math.PI; //turnSpeed in degrees
 	this.velocity = new Vector(0, 0); // direction ship is drifting in
 	this.accel = 100; // max velocity magnitude 
