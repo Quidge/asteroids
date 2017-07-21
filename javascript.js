@@ -41,7 +41,9 @@ CanvasDisplay.prototype.drawActors = function() {
 		if (actor.type == "player") {
 			
 						
-			this.cx.save(); //offsets to Level "origin" this.cx.translate(this.level.origin.x + actor.pos.x, this.level.origin.y + actor.pos.y);
+			this.cx.save(); 
+			this.cx.translate(this.level.origin.x + actor.pos.x,
+					this.level.origin.y + actor.pos.y); //offsets to Level "origin"
 			this.cx.rotate(actor.orient + 0.5*Math.PI);
 			
 			this.cx.beginPath();
@@ -124,28 +126,10 @@ Player.prototype.turn = function(step, keys) {
 };
 Player.prototype.jet = function(step, keys) {
 	if (keys.up) {
-<<<<<<< HEAD
 		var increment = step * this.accel;
 		var jetVelocity = new Vector(Math.cos(this.orient) * increment,
 									Math.sin(this.orient) * increment);
 		this.velocity = this.velocity.plus(jetVelocity);
-=======
-		// i don't think these need step
-		/*
-		var xChange = Math.cos(this.orient) * this.accel * step;
-		var yChange = Math.sin(this.orient) * this.accel * step;
-		var changeVector = new Vector(xChange, yChange);
-		this.speed.plus(changeVector);
-		*/
-		
-		this.speed.x = this.speed.x + Math.cos(this.orient) * this.accel;
-		this.speed.y = this.speed.y + Math.sin(this.orient) * this.accel;
-		
-		var motion = new Vector(this.speed.x * step, this.speed.y * step);
-		
-		this.pos.x += motion.x;
-		this.pos.y += motion.y;
->>>>>>> fixDrawActors
 	}
 };
 Player.prototype.updatePosition = function() {
