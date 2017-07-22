@@ -10,7 +10,10 @@
 #### Methods:
 * animate  
   * runs if actions this.status != null
-* wallAt (takes actor arg): if center pos of actor + actor.hitRadius is outside boundaries, translate actor.pos to inverse wall coords
+  * runs actor.act on all actors
+  * runs level.checkClip on all actors and does different things depending on what checkClip returns ("wall", player.type, etc)
+* transport (takes actor, new Vector): changes actor.pos to second arg Vector
+* checkClip (takes actor) returns actor.type (or "wall") if actor.hitRadius is touching anything   
 
 
 ## Helper stuff

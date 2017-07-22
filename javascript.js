@@ -67,13 +67,28 @@ function Level() {
 	this.status = null;	
 }
 
-Level.prototype.wallAt = function(actor) {
-	if (Math.abs(actor.pos.x) > this.length/2)
-		actor.pos = actor.pos.times(-1);
-	if (Math.abs(actor.pos.y) > this.height/2)
-		actor.pos = actor.pos.times(-1); 
+Level.prototype.checkClip = function(actor) {
+	// check other actors
+	for (var i = 0; i < this.actors.length; i++) {
+		var other = this.actors[i];
+		if (actor !== other) {
+			if (actor.pos.x + actor.hitRadius > other.pos.x - other.hitRadius ||
+				actor.pos.x - actor.hitRadius < other.pos.x + other.hitRadius ||
+				actor.pos.y + actor.hitRadius > other.pos.y - other.hitRadius ||
+				actor.pos.y - actor.hitRadius < other.pos.y + other.hitRadius)
+				console.log(other.type);
+				return other.type;
+		}
+	}
+	
+	// check for wall collision
+	if (Math.abs(actor.pos.x) + actor.hitRadius > this.length/2 ||
+		Math.abs(actor.pos.y) + actor.hitRadius > this.height/2)
+		return "wall";
 };
-
+Level.prototype.transport = function(actor, newPos) {
+	actor.pos = newPos;
+};
 
 var maxStep = 0.05;
 
@@ -86,8 +101,8 @@ Level.prototype.animate = function(step, keys) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
-			console.log(actor.pos.x, actor.pos.y);
-			this.wallAt(actor); // applies -1 scaler to actor pos vector
+			if (this.checkClip(actor) == "wall")
+				this.transport(actor, actor.pos.times(-1));
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
