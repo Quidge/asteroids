@@ -108,6 +108,17 @@ Level.prototype.animate = function(step, keys) {
 		step -= thisStep;
 	}
 };
+Level.prototype.spawnAsteroid = function(size) {
+	if (!size)
+		return;
+	
+	var pos = new Vector(300,300);
+	var spin = spin;
+	var velocity = new Vector(5,5);
+	
+	var asteroid = new Asteroid(pos, size, spin, velocity)
+	this.actors.push(asteroid);
+};
 
 // Begin different actor types
 function Asteroid(pos, size, spin, velocity) {
@@ -116,14 +127,26 @@ function Asteroid(pos, size, spin, velocity) {
 	this.hitRadius = Math.max(this.size.x, this.size.y)/2;
 	this.spin = spin;
 	this.velocity = velocity;
+	this.orient = 0;
 }
 Asteroid.prototype.type = "asteroid";
+Asteroid.prototype.act = function(step) {
+	this.rotate(step);
+	this.updatePosition(step);
+};
 Asteroid.prototype.fracture = function() {
 	if (this.size > 2) {
 		return //an array with 2-3 spawned child asteroids
 	} else
 		// if an asteroid is under a certain size, it won't split smaller
 		return false;
+};
+Asteroid.prototype.updatePosition = function(step) {
+	this.pos.x = this.pos.x + this.velocity.x * step;
+	this.pos.y = this.pos.y + this.velocity.y * step;
+};
+Asteroid.prototype.rotate = function(step) {
+	this.orient = this.orient + this.spin * step;
 };
 
 function Player(pos) {
