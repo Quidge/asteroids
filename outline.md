@@ -10,7 +10,7 @@
 #### Methods:
 * animate  
   * runs if actions this.status != null
-* wallAt (takes actor arg): if middle of actor.hitbox touches wall, translate actor.pos to inverse wall coords
+* wallAt (takes actor arg): if center pos of actor + actor.hitRadius is outside boundaries, translate actor.pos to inverse wall coords
 
 
 ## Helper stuff
