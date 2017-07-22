@@ -66,8 +66,9 @@
 #### Vars
 * position (vector)
 * size (vector)
-* speed (vector)
-* rotation 
+* hitRadius
+* spin 
+* velocity (vector)
 #### Methods
 * fracture
 #### Properties

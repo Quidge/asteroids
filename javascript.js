@@ -110,11 +110,12 @@ Level.prototype.animate = function(step, keys) {
 };
 
 // Begin different actor types
-function Asteroid(pos, size, rotation, speed) {
+function Asteroid(pos, size, spin, velocity) {
 	this.pos = pos;
 	this.size = size;
-	this.rotation = rotation;
-	this.speed = speed;
+	this.hitRadius = Math.max(this.size.x, this.size.y)/2;
+	this.spin = spin;
+	this.velocity = velocity;
 }
 Asteroid.prototype.type = "asteroid";
 Asteroid.prototype.fracture = function() {
