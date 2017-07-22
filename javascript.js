@@ -38,22 +38,21 @@ CanvasDisplay.prototype.drawActors = function() {
 		
 		var actor = this.level.actors[i];
 		
-		if (actor.type == "player") {
-			this.cx.save(); 
-			this.cx.translate(this.level.origin.x + actor.pos.x,
-					this.level.origin.y + actor.pos.y); //offsets to Level "origin"
-			this.cx.rotate(actor.orient + 0.5*Math.PI);
-			
-			this.cx.beginPath();
-			// actor.size divided by 2 to draw actor "centered" on actor.pos
-			this.cx.moveTo(0,-actor.size.y/2);
-			this.cx.lineTo(-actor.size.x/2, actor.size.y/2);
-			this.cx.lineTo(actor.size.x/2, actor.size.y/2);
-			this.cx.closePath();
-			this.cx.stroke();
-			
-			this.cx.restore();	
-		}
+		this.cx.save(); 
+		this.cx.translate(this.level.origin.x + actor.pos.x,
+				this.level.origin.y + actor.pos.y); //offsets to Level "origin"
+		this.cx.rotate(actor.orient + 0.5*Math.PI);
+		
+		this.cx.beginPath();
+		// actor.size divided by 2 to draw actor "centered" on actor.pos
+		this.cx.moveTo(0,-actor.size.y/2);
+		this.cx.lineTo(-actor.size.x/2, actor.size.y/2);
+		this.cx.lineTo(actor.size.x/2, actor.size.y/2);
+		this.cx.closePath();
+		this.cx.stroke();
+		
+		this.cx.restore();	
+		
 	}; 
 };
 
@@ -131,8 +130,8 @@ function Asteroid(pos, size, spin, velocity) {
 }
 Asteroid.prototype.type = "asteroid";
 Asteroid.prototype.act = function(step) {
-	this.rotate(step);
-	this.updatePosition(step);
+	this.rotate(step); // applies spin to current orientation
+	this.updatePosition(step); // applies velocity to current position
 };
 Asteroid.prototype.fracture = function() {
 	if (this.size > 2) {
