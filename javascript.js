@@ -53,6 +53,18 @@ CanvasDisplay.prototype.drawActors = function() {
 			this.cx.stroke();
 			
 			this.cx.restore();	
+		} else /*if (actor.type == "asteroid")*/ {
+			
+			this.cx.save(); 
+			this.cx.translate(this.level.origin.x + actor.pos.x,
+					this.level.origin.y + actor.pos.y); //offsets to Level "origin"
+			this.cx.rotate(actor.orient + 0.5*Math.PI);
+			
+			// actor.size divided by 2 to draw actor "centered" on actor.pos
+			this.cx.moveTo(0,0);
+			this.cx.fillRect(-actor.size.x/2, -actor.size/2, actor.size.x, actor.size.y);
+			
+			this.cx.restore();
 		}
 	}; 
 };
@@ -68,7 +80,14 @@ function Level() {
 }
 
 Level.prototype.checkClip = function(actor) {
-	// check other actors
+	
+	// base state is not touching anything, hence false
+	// first check if passed actor is touching anything in level.actors and
+	// assign clipType to other.type
+	// then check if actor is touching wall and assign "wall" to clipType if so
+	// finally, return clipType
+	var clipType = false;
+	
 	for (var i = 0; i < this.actors.length; i++) {
 		var other = this.actors[i];
 		if (actor !== other) {
@@ -76,15 +95,18 @@ Level.prototype.checkClip = function(actor) {
 				actor.pos.x - actor.hitRadius < other.pos.x + other.hitRadius ||
 				actor.pos.y + actor.hitRadius > other.pos.y - other.hitRadius ||
 				actor.pos.y - actor.hitRadius < other.pos.y + other.hitRadius)
-				console.log(other.type);
-				return other.type;
+				
+				clipType = other.type;
+				
 		}
 	}
 	
 	// check for wall collision
 	if (Math.abs(actor.pos.x) + actor.hitRadius > this.length/2 ||
 		Math.abs(actor.pos.y) + actor.hitRadius > this.height/2)
-		return "wall";
+		clipType = "wall";
+
+	return clipType;
 };
 Level.prototype.transport = function(actor, newPos) {
 	actor.pos = newPos;
@@ -108,13 +130,12 @@ Level.prototype.animate = function(step, keys) {
 		step -= thisStep;
 	}
 };
-Level.prototype.spawnAsteroid = function(size) {
-	if (!size)
-		return;
+Level.prototype.spawnAsteroid = function() {
 	
-	var pos = new Vector(300,300);
-	var spin = spin;
+	var pos = new Vector(200,200);
+	var spin = 30;
 	var velocity = new Vector(5,5);
+	var size = new Vector(30,40);
 	
 	var asteroid = new Asteroid(pos, size, spin, velocity)
 	this.actors.push(asteroid);
@@ -252,14 +273,10 @@ function runLevel(level, Display) {
 function runGame(Display) {
 	var level = new Level();
 	level.actors.push(new Player(new Vector(0,0)));
+	level.spawnAsteroid();	
 	runLevel(level, Display);
 }
 
 // end helper stuff
-
-
-var simpleLevel = new Level();
-simpleLevel.actors.push(new Player(new Vector(0,0)));
-
 
 runGame(CanvasDisplay);
