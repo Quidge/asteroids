@@ -69,11 +69,12 @@ function Level() {
 	this.status = null;	
 }
 
-Level.prototype.wallAt = function(actor) {
-	if (Math.abs(actor.pos.x) > this.length/2)
+Level.prototype.wallAt = function(actor, step) {
+	
+	if (Math.abs(actor.pos.x) + actor.hitRadius > this.length/2)
 		actor.pos = actor.pos.times(-1);
-	if (Math.abs(actor.pos.y) > this.height/2)
-		actor.pos = actor.pos.times(-1); 
+	if (Math.abs(actor.pos.y) + actor.hitRadius > this.height/2)
+		actor.pos = actor.pos.times(-1);
 };
 
 
