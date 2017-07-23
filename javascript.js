@@ -101,7 +101,7 @@ function Level() {
 	this.origin = new Vector(this.length/2, this.height/2);
 	// each actor present in actor is expected to have a position and size
 	this.actors = [];	
-	this.status = null;	
+	this.status = 0; // -1 is lost, 0 is running, 1 is won	
 }
 
 Level.prototype.checkClip = function(actor) {
@@ -143,14 +143,18 @@ var maxStep = 0.05;
 
 // step will be time since last animation frame
 Level.prototype.animate = function(step, keys) {
-	//if (this.status != null)
-		// end game in some way
+	//if (this.status != null) {
+		 //end game in some way
 	
-	while (step > 0) {
+	while (step > 0 && this.status == 0) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
-			if (this.checkClip(actor) == "wall")
+			var collision = this.checkClip(actor);
+			console.log(collision);
+			if (actor.type == "player" && collision == "asteroid")
+				this.status = -1;
+			if (collision == "wall")
 				this.transport(actor, actor.pos.times(-1));
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
