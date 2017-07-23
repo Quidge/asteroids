@@ -14,6 +14,7 @@
   * runs level.checkClip on all actors and does different things depending on what checkClip returns ("wall", player.type, etc)
 * transport (takes actor, new Vector): changes actor.pos to second arg Vector
 * checkClip (takes actor) returns actor.type (or "wall") if actor.hitRadius is touching anything   
+* spawnAsteroid: creates new Asteroid with random attributes and adds it to the level.actors array
 
 
 ## Helper stuff

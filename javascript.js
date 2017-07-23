@@ -127,8 +127,11 @@ Level.prototype.checkClip = function(actor) {
 	}
 	
 	// check for wall collision
-	if (Math.abs(actor.pos.x) + actor.hitRadius > this.length/2 ||
-		Math.abs(actor.pos.y) + actor.hitRadius > this.height/2)
+	// Wall collisions don't have to check for hit radius. This reduces the 
+	// sense of "teleporting" that objects can generate when moving from once
+	// side of the level to the other.
+	if (Math.abs(actor.pos.x) > this.length/2 ||
+		Math.abs(actor.pos.y) > this.height/2)
 		clipType = "wall";
 
 	return clipType;
@@ -157,10 +160,24 @@ Level.prototype.animate = function(step, keys) {
 };
 Level.prototype.spawnAsteroid = function() {
 	
-	var pos = new Vector(200,200);
-	var spin = 1;
-	var velocity = new Vector(10,10);
-	var size = new Vector(30,40);
+	var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+	var rand2 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+
+	// Sets start position to be at random location on some wall
+	// If in the extraordinarily unlikely scenario that rand1 == rand2, 
+	// start position is set at 300,300 (bottom right corner)
+	if (rand1 > rand2)
+		var pos = new Vector(300*rand1, 300);
+	else if (rand1 < rand2)
+		var pos = new Vector(300, 300*rand1);
+	else
+		var pos = new Vector(300, 300);
+	var spin = 5 * rand1;
+	var velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
+	// can't have negative sizes
+	// minimum size is 15x20
+	var size = new Vector(15 + Math.abs(500 * rand1), 
+							20 + Math.abs(500 * rand2));
 	
 	var asteroid = new Asteroid(pos, size, spin, velocity)
 	this.actors.push(asteroid);
@@ -298,7 +315,11 @@ function runLevel(level, Display) {
 function runGame(Display) {
 	var level = new Level();
 	level.actors.push(new Player(new Vector(0,0)));
-	level.spawnAsteroid();	
+	level.spawnAsteroid();
+	level.spawnAsteroid();
+	level.spawnAsteroid();
+	level.spawnAsteroid();
+	
 	runLevel(level, Display);
 }
 
