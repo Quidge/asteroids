@@ -38,6 +38,7 @@ CanvasDisplay.prototype.drawActors = function() {
 		
 		var actor = this.level.actors[i];
 		
+		
 		if (actor.type == "player") {
 			this.cx.save(); 
 			this.cx.translate(this.level.origin.x + actor.pos.x,
@@ -54,6 +55,42 @@ CanvasDisplay.prototype.drawActors = function() {
 			
 			this.cx.restore();	
 		}
+		
+		if (actor.type == "asteroid") {
+			
+			// Asteroids are squares. The easiest way to calculate the
+			// coordinates of this square is to assume a circle with 
+			// radius = sqrt(xside/2) + sqrt(yside/2). So, radius = hypotenus
+			// of triangle from center of square to corner.
+			// Then you can do hypotenus * cos(1/4 * PI), 3/4 * PI, 5/4 * PI,
+			// 7/4 * PI
+			
+			var hyp = Math.sqrt(actor.size.x) + Math.sqrt(actor.size.y);
+			
+			// Define the start position so everything is shorter.
+			// this.level.origin.x + actor.pos.x is pretty long.
+
+			var aX = this.level.origin.x + actor.pos.x;
+			var aY = this.level.origin.y + actor.pos.y;
+			
+			this.cx.beginPath();
+			// first corner
+			this.cx.moveTo(aX + hyp * Math.cos(0.25*Math.PI + actor.orient),
+							aY + hyp * Math.sin(0.25*Math.PI + actor.orient));
+			// second corner
+			this.cx.lineTo(aX + hyp * Math.cos(0.75*Math.PI + actor.orient),
+							aY + hyp * Math.sin(0.75*Math.PI + actor.orient));
+			// third corner
+			this.cx.lineTo(aX + hyp * Math.cos(1.25*Math.PI + actor.orient),
+							aY + hyp * Math.sin(1.25*Math.PI + actor.orient));
+			// fourth corner
+			this.cx.lineTo(aX + hyp * Math.cos(1.75*Math.PI + actor.orient),
+							aY + hyp * Math.sin(1.75*Math.PI + actor.orient));
+			// closePath draws line back to first location in path and completes
+			// the path
+			this.cx.closePath();
+			this.cx.stroke();
+		}
 	}; 
 };
 
@@ -68,7 +105,14 @@ function Level() {
 }
 
 Level.prototype.checkClip = function(actor) {
-	// check other actors
+	
+	// base state is not touching anything, hence false
+	// first check if passed actor is touching anything in level.actors and
+	// assign clipType to other.type
+	// then check if actor is touching wall and assign "wall" to clipType if so
+	// finally, return clipType
+	var clipType = false;
+	
 	for (var i = 0; i < this.actors.length; i++) {
 		var other = this.actors[i];
 		if (actor !== other) {
@@ -76,15 +120,21 @@ Level.prototype.checkClip = function(actor) {
 				actor.pos.x - actor.hitRadius < other.pos.x + other.hitRadius ||
 				actor.pos.y + actor.hitRadius > other.pos.y - other.hitRadius ||
 				actor.pos.y - actor.hitRadius < other.pos.y + other.hitRadius)
-				console.log(other.type);
-				return other.type;
+				
+				clipType = other.type;
+				
 		}
 	}
 	
 	// check for wall collision
-	if (Math.abs(actor.pos.x) + actor.hitRadius > this.length/2 ||
-		Math.abs(actor.pos.y) + actor.hitRadius > this.height/2)
-		return "wall";
+	// Wall collisions don't have to check for hit radius. This reduces the 
+	// sense of "teleporting" that objects can generate when moving from once
+	// side of the level to the other.
+	if (Math.abs(actor.pos.x) > this.length/2 ||
+		Math.abs(actor.pos.y) > this.height/2)
+		clipType = "wall";
+
+	return clipType;
 };
 Level.prototype.transport = function(actor, newPos) {
 	actor.pos = newPos;
@@ -108,21 +158,58 @@ Level.prototype.animate = function(step, keys) {
 		step -= thisStep;
 	}
 };
+Level.prototype.spawnAsteroid = function() {
+	
+	var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+	var rand2 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+
+	// Sets start position to be at random location on some wall
+	// If in the extraordinarily unlikely scenario that rand1 == rand2, 
+	// start position is set at 300,300 (bottom right corner)
+	if (rand1 > rand2)
+		var pos = new Vector(300*rand1, 300);
+	else if (rand1 < rand2)
+		var pos = new Vector(300, 300*rand1);
+	else
+		var pos = new Vector(300, 300);
+	var spin = 5 * rand1;
+	var velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
+	// can't have negative sizes
+	// minimum size is 15x20
+	var size = new Vector(15 + Math.abs(500 * rand1), 
+							20 + Math.abs(500 * rand2));
+	
+	var asteroid = new Asteroid(pos, size, spin, velocity)
+	this.actors.push(asteroid);
+};
 
 // Begin different actor types
-function Asteroid(pos, size, rotation, speed) {
+function Asteroid(pos, size, spin, velocity) {
 	this.pos = pos;
 	this.size = size;
-	this.rotation = rotation;
-	this.speed = speed;
+	this.hitRadius = Math.max(this.size.x, this.size.y)/2;
+	this.spin = spin;
+	this.velocity = velocity;
+	this.orient = 0;
 }
 Asteroid.prototype.type = "asteroid";
+Asteroid.prototype.act = function(step) {
+	this.rotate(step); // applies spin to current orientation
+	this.updatePosition(step); // applies velocity to current position
+};
 Asteroid.prototype.fracture = function() {
 	if (this.size > 2) {
 		return //an array with 2-3 spawned child asteroids
 	} else
 		// if an asteroid is under a certain size, it won't split smaller
 		return false;
+};
+Asteroid.prototype.updatePosition = function(step) {
+	this.pos.x = this.pos.x + this.velocity.x * step;
+	this.pos.y = this.pos.y + this.velocity.y * step;
+};
+Asteroid.prototype.rotate = function(step) {
+	this.orient = this.orient + this.spin * step;
 };
 
 function Player(pos) {
@@ -228,14 +315,14 @@ function runLevel(level, Display) {
 function runGame(Display) {
 	var level = new Level();
 	level.actors.push(new Player(new Vector(0,0)));
+	level.spawnAsteroid();
+	level.spawnAsteroid();
+	level.spawnAsteroid();
+	level.spawnAsteroid();
+	
 	runLevel(level, Display);
 }
 
 // end helper stuff
-
-
-var simpleLevel = new Level();
-simpleLevel.actors.push(new Player(new Vector(0,0)));
-
 
 runGame(CanvasDisplay);
