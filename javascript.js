@@ -38,6 +38,7 @@ CanvasDisplay.prototype.drawActors = function() {
 		
 		var actor = this.level.actors[i];
 		
+		
 		if (actor.type == "player") {
 			this.cx.save(); 
 			this.cx.translate(this.level.origin.x + actor.pos.x,
@@ -53,18 +54,42 @@ CanvasDisplay.prototype.drawActors = function() {
 			this.cx.stroke();
 			
 			this.cx.restore();	
-		} else /*if (actor.type == "asteroid")*/ {
+		}
+		
+		if (actor.type == "asteroid") {
 			
-			this.cx.save(); 
-			this.cx.translate(this.level.origin.x + actor.pos.x,
-					this.level.origin.y + actor.pos.y); //offsets to Level "origin"
-			this.cx.rotate(actor.orient + 0.5*Math.PI);
+			// Asteroids are squares. The easiest way to calculate the
+			// coordinates of this square is to assume a circle with 
+			// radius = sqrt(xside/2) + sqrt(yside/2). So, radius = hypotenus
+			// of triangle from center of square to corner.
+			// Then you can do hypotenus * cos(1/4 * PI), 3/4 * PI, 5/4 * PI,
+			// 7/4 * PI
 			
-			// actor.size divided by 2 to draw actor "centered" on actor.pos
-			this.cx.moveTo(0,0);
-			this.cx.fillRect(-actor.size.x/2, -actor.size/2, actor.size.x, actor.size.y);
+			var hyp = Math.sqrt(actor.size.x) + Math.sqrt(actor.size.y);
 			
-			this.cx.restore();
+			// Define the start position so everything is shorter.
+			// this.level.origin.x + actor.pos.x is pretty long.
+
+			var aX = this.level.origin.x + actor.pos.x;
+			var aY = this.level.origin.y + actor.pos.y;
+			
+			this.cx.beginPath();
+			// first corner
+			this.cx.moveTo(aX + hyp * Math.cos(0.25*Math.PI + actor.orient),
+							aY + hyp * Math.sin(0.25*Math.PI + actor.orient));
+			// second corner
+			this.cx.lineTo(aX + hyp * Math.cos(0.75*Math.PI + actor.orient),
+							aY + hyp * Math.sin(0.75*Math.PI + actor.orient));
+			// third corner
+			this.cx.lineTo(aX + hyp * Math.cos(1.25*Math.PI + actor.orient),
+							aY + hyp * Math.sin(1.25*Math.PI + actor.orient));
+			// fourth corner
+			this.cx.lineTo(aX + hyp * Math.cos(1.75*Math.PI + actor.orient),
+							aY + hyp * Math.sin(1.75*Math.PI + actor.orient));
+			// closePath draws line back to first location in path and completes
+			// the path
+			this.cx.closePath();
+			this.cx.stroke();
 		}
 	}; 
 };
@@ -133,8 +158,8 @@ Level.prototype.animate = function(step, keys) {
 Level.prototype.spawnAsteroid = function() {
 	
 	var pos = new Vector(200,200);
-	var spin = 30;
-	var velocity = new Vector(5,5);
+	var spin = 1;
+	var velocity = new Vector(10,10);
 	var size = new Vector(30,40);
 	
 	var asteroid = new Asteroid(pos, size, spin, velocity)
