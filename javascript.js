@@ -122,7 +122,6 @@ Level.prototype.checkClip = function(actor) {
 				actor.pos.y - actor.hitRadius < other.pos.y + other.hitRadius)
 				
 				clipType = other.type;
-				
 		}
 	}
 	
