@@ -122,8 +122,10 @@ Level.prototype.checkClip = function(actor) {
 			// their second dimension by checking the y coordinates.
 			//
 
-			var ax = actor.pos.x, ay = actor.pos.y, ar = actor.pos.radius;
-			var ox = other.pos.x, oy = other.pos.y, or = other.pos.radius;
+			var ax = actor.pos.x, ay = actor.pos.y, ar = actor.radius;
+			var ox = other.pos.x, oy = other.pos.y, or = other.radius;
+			
+			//console.log(actor.pos.x, ay = actor.pos.y, ar = actor.pos.radius,						other.pos.x, oy = other.pos.y, or = other.pos.radius);
 			
 			// check right side (actorX > otherX)
 			if (ax > ox && ax - ar < ox + or) {
@@ -132,6 +134,7 @@ Level.prototype.checkClip = function(actor) {
 					// check above (py > ay)
 					(py > ay && py - pr < ay + ar)) {
 					clipType = other.type;
+					console.log('found me!');
 				}
 			// check left side (actorX < otherX)
 			} else if (ax < ox && ax + ar > ox - or) {
