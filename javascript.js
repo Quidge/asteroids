@@ -115,7 +115,7 @@ Level.prototype.checkClip = function(actor) {
 	
 	for (var i = 0; i < this.actors.length; i++) {
 		var other = this.actors[i];
-		while (actor !== other) {
+		if (actor !== other) {
 			// This is a lot of logic. The pattern is this:
 			// If actor and other were in only one dimension (x axis), would
 			// they collide? If yes, check to see if they would also collide in 
@@ -142,17 +142,6 @@ Level.prototype.checkClip = function(actor) {
 					clipType = other.type;
 				}
 			}
-			console.log(clipType);
-			
-			/*
-			// Working code	
-			if (actor.pos.x + actor.hitRadius > other.pos.x - other.hitRadius ||
-				actor.pos.x - actor.hitRadius < other.pos.x + other.hitRadius ||
-				actor.pos.y + actor.hitRadius > other.pos.y - other.hitRadius ||
-				actor.pos.y - actor.hitRadius < other.pos.y + other.hitRadius)
-				
-				clipType = other.type;
-			*/
 		}
 	}
 	
@@ -177,16 +166,19 @@ Level.prototype.animate = function(step, keys) {
 	//if (this.status != null) {
 		 //end game in some way
 	
-	while (step > 0 && this.status == 0) {
+	while (step > 0) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
 			var collision = this.checkClip(actor);
-			console.log(actor.type, collision);
-			if (actor.type == "player" && collision == "asteroid")
-				this.status = -1;
+			console.log(actor.type);
+			if (actor.type == "player" && collision == "asteroid") {
+				console.log('hit!');
+				this.status = -1; //-1 means lost; default (running) is 0
+			}
 			if (collision == "wall")
 				this.transport(actor, actor.pos.times(-1));
+			console.log(this.status);
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
