@@ -122,26 +122,25 @@ Level.prototype.checkClip = function(actor) {
 			// their second dimension by checking the y coordinates.
 			//
 
-			var ax = actor.pos.x, ay = actor.pos.y, ar = actor.radius;
-			var ox = other.pos.x, oy = other.pos.y, or = other.radius;
+			var ax = actor.pos.x, ay = actor.pos.y, ar = actor.hitRadius;
+			var ox = other.pos.x, oy = other.pos.y, or = other.hitRadius;
 			
-			//console.log(actor.pos.x, ay = actor.pos.y, ar = actor.pos.radius,						other.pos.x, oy = other.pos.y, or = other.pos.radius);
+			//console.log(actor.pos.x, ay = actor.pos.y, ar = actor.hitRadius,						other.pos.x, oy = other.pos.y, or = other.hitRadius);
 			
 			// check right side (actorX > otherX)
 			if (ax > ox && ax - ar < ox + or) {
 					// check below (py < ay)
-				if ((py < ay && py + pr > ay - ar) ||
+				if ((ay < oy && ay + ar > oy - or) ||
 					// check above (py > ay)
-					(py > ay && py - pr < ay + ar)) {
+					(ay > oy && ay - ar < oy + or)) {
 					clipType = other.type;
-					console.log('found me!');
 				}
 			// check left side (actorX < otherX)
 			} else if (ax < ox && ax + ar > ox - or) {
 					// check below (py < ay)
-				if ((py < ay && py + pr > ay - ar) ||
+				if ((ay < oy && ay + ar > oy - or) ||
 					// check above (py > ay)
-					(py > ay && py - pr < ay + ar)) {
+					(ay > oy && ay - ar < oy + or)) {
 					clipType = other.type;
 				}
 			}
