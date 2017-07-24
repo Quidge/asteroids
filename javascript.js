@@ -115,13 +115,44 @@ Level.prototype.checkClip = function(actor) {
 	
 	for (var i = 0; i < this.actors.length; i++) {
 		var other = this.actors[i];
-		if (actor !== other) {
+		while (actor !== other) {
+			// This is a lot of logic. The pattern is this:
+			// If actor and other were in only one dimension (x axis), would
+			// they collide? If yes, check to see if they would also collide in 
+			// their second dimension by checking the y coordinates.
+			//
+
+			var ax = actor.pos.x, ay = actor.pos.y, ar = actor.pos.radius;
+			var ox = other.pos.x, oy = other.pos.y, or = other.pos.radius;
+			
+			// check right side (actorX > otherX)
+			if (ax > ox && ax - ar < ox + or) {
+					// check below (py < ay)
+				if ((py < ay && py + pr > ay - ar) ||
+					// check above (py > ay)
+					(py > ay && py - pr < ay + ar)) {
+					clipType = other.type;
+				}
+			// check left side (actorX < otherX)
+			} else if (ax < ox && ax + ar > ox - or) {
+					// check below (py < ay)
+				if ((py < ay && py + pr > ay - ar) ||
+					// check above (py > ay)
+					(py > ay && py - pr < ay + ar)) {
+					clipType = other.type;
+				}
+			}
+			console.log(clipType);
+			
+			/*
+			// Working code	
 			if (actor.pos.x + actor.hitRadius > other.pos.x - other.hitRadius ||
 				actor.pos.x - actor.hitRadius < other.pos.x + other.hitRadius ||
 				actor.pos.y + actor.hitRadius > other.pos.y - other.hitRadius ||
 				actor.pos.y - actor.hitRadius < other.pos.y + other.hitRadius)
 				
 				clipType = other.type;
+			*/
 		}
 	}
 	
@@ -151,7 +182,7 @@ Level.prototype.animate = function(step, keys) {
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
 			var collision = this.checkClip(actor);
-			console.log(collision);
+			console.log(actor.type, collision);
 			if (actor.type == "player" && collision == "asteroid")
 				this.status = -1;
 			if (collision == "wall")
