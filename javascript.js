@@ -38,6 +38,16 @@ CanvasDisplay.prototype.drawActors = function() {
 		
 		var actor = this.level.actors[i];
 		
+		// draw actor hitRadius (this is only for development)
+		
+		var hitBoxCentX = this.level.origin.x + actor.pos.x;
+		var hitBoxCentY = this.level.origin.y + actor.pos.y;
+		this.cx.beginPath();
+		this.cx.arc(hitBoxCentX, hitBoxCentY, actor.hitRadius, 0, 7);
+		this.cx.closePath();
+		this.cx.stroke();
+		
+		console.log(actor.size.x, actor.hitRadius);
 		
 		if (actor.type == "player") {
 			this.cx.save(); 
@@ -65,7 +75,8 @@ CanvasDisplay.prototype.drawActors = function() {
 			// Then you can do hypotenus * cos(1/4 * PI), 3/4 * PI, 5/4 * PI,
 			// 7/4 * PI
 			
-			var hyp = Math.sqrt(actor.size.x) + Math.sqrt(actor.size.y);
+			//var hyp = Math.sqrt(actor.size.x) + Math.sqrt(actor.size.y);
+			var hyp = Math.hypot(actor.size.x/2, actor.size.y/2);
 			
 			// Define the start position so everything is shorter.
 			// this.level.origin.x + actor.pos.x is pretty long.
@@ -175,7 +186,7 @@ Level.prototype.animate = function(step, keys) {
 			var collision = this.checkClip(actor);
 			if (actor.type == "player" && collision == "asteroid") {
 				console.log('hit!');
-				this.status = -1; //-1 means lost; default (running) is 0
+				//this.status = -1; //-1 means lost; default (running) is 0
 			}
 			if (collision == "wall")
 				this.transport(actor, actor.pos.times(-1));
@@ -202,8 +213,11 @@ Level.prototype.spawnAsteroid = function() {
 	var velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
 	// can't have negative sizes
 	// minimum size is 15x20
-	var size = new Vector(15 + Math.abs(500 * rand1), 
-							20 + Math.abs(500 * rand2));
+	//var size = new Vector(15 + Math.abs(200 * rand1), 
+	//						20 + Math.abs(200 * rand2));
+	
+	//manually set size, don't mess with randoms
+	var size = new Vector(50, 300);
 	
 	var asteroid = new Asteroid(pos, size, spin, velocity)
 	this.actors.push(asteroid);
@@ -213,7 +227,7 @@ Level.prototype.spawnAsteroid = function() {
 function Asteroid(pos, size, spin, velocity) {
 	this.pos = pos;
 	this.size = size;
-	this.hitRadius = Math.max(this.size.x, this.size.y)/2;
+	this.hitRadius = Math.max(this.size.x, this.size.y) / 2;
 	this.spin = spin;
 	this.velocity = velocity;
 	this.orient = 0;
