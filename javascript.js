@@ -120,7 +120,7 @@ Level.prototype.checkClip = function(actor) {
 			// If actor and other were in only one dimension (x axis), would
 			// they collide? If yes, check to see if they would also collide in 
 			// their second dimension by checking the y coordinates.
-			//
+			// 
 
 			var ax = actor.pos.x, ay = actor.pos.y, ar = actor.hitRadius;
 			var ox = other.pos.x, oy = other.pos.y, or = other.hitRadius;
