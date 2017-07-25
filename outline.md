@@ -53,8 +53,8 @@
 * orient(ation) (in radians) (this is reference to global origin)
 ###### Constants
 * size (vector)
-* hitRadius (collision detection "box", but as a circle)
-* turnSpeed (max speed player can turn 
+* hitRadius (collision detection "box", but as a circle); radius is avg between actor.size.x/2 and actor.size.y/2
+* turnSpeed (max speed player can turn)
 * accel (the value which is used to determine at which Player.speed can increase)
 #### Methods
 * turn

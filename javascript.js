@@ -37,13 +37,14 @@ CanvasDisplay.prototype.drawActors = function() {
 	for (var i = 0; i < this.level.actors.length; i++) {
 		
 		var actor = this.level.actors[i];
+		// x and y of actor pos
+		var aX = this.level.origin.x + actor.pos.x;
+		var aY = this.level.origin.y + actor.pos.y;
 		
 		// draw actor hitRadius (this is only for development)
-		
-		var hitBoxCentX = this.level.origin.x + actor.pos.x;
-		var hitBoxCentY = this.level.origin.y + actor.pos.y;
+
 		this.cx.beginPath();
-		this.cx.arc(hitBoxCentX, hitBoxCentY, actor.hitRadius, 0, 7);
+		this.cx.arc(aX, aY, actor.hitRadius, 0, 7);
 		this.cx.closePath();
 		this.cx.stroke();
 		
@@ -51,8 +52,7 @@ CanvasDisplay.prototype.drawActors = function() {
 		
 		if (actor.type == "player") {
 			this.cx.save(); 
-			this.cx.translate(this.level.origin.x + actor.pos.x,
-					this.level.origin.y + actor.pos.y); //offsets to Level "origin"
+			this.cx.translate(aX, aY); //offset to actor location
 			this.cx.rotate(actor.orient + 0.5*Math.PI);
 			
 			this.cx.beginPath();
@@ -68,35 +68,45 @@ CanvasDisplay.prototype.drawActors = function() {
 		
 		if (actor.type == "asteroid") {
 			
-			// Asteroids are squares. The easiest way to calculate the
-			// coordinates of this square is to assume a circle with 
-			// radius = sqrt(xside/2) + sqrt(yside/2). So, radius = hypotenus
-			// of triangle from center of square to corner.
-			// Then you can do hypotenus * cos(1/4 * PI), 3/4 * PI, 5/4 * PI,
-			// 7/4 * PI
+			// Asteroids are rectangles. A rectangle has four corners. The
+			// position of those corners can be found with triangles. 
+			// The distance from the center of the rectangle to any corner is
+			// the hypotenuse of a right triangle with vertices origin and
+			// corner. 
+			// So, dist to corner = sqrt( (height/2)^2 + (width/2)^2 ).
+			// The angle of that right triangle, from the horizontal is
+			// atan( (h/2)/(w/2) ). We'll call it ø.
+			// 
+			// Because the sum of all angles in a square (and rectangle) is 
+			// 360º, we can find the second angle (to
+			// the top left corner) by 180 - ø. We can find the third angle (to
+			// the bottom left corner by 180 + ø. The last corner (bottom right)
+			// with 360 - ø.
+			// 
+			// Remember that these angles have been from the horizontal. Some
+			// methods expect you to be starting from the vertical.
 			
-			//var hyp = Math.sqrt(actor.size.x) + Math.sqrt(actor.size.y);
 			var hyp = Math.hypot(actor.size.x/2, actor.size.y/2);
 			
 			// Define the start position so everything is shorter.
 			// this.level.origin.x + actor.pos.x is pretty long.
-
-			var aX = this.level.origin.x + actor.pos.x;
-			var aY = this.level.origin.y + actor.pos.y;
+			
+			// corner angle
+			var theta = Math.atan( (actor.size.y/2) / (actor.size.x/2) );
 			
 			this.cx.beginPath();
 			// first corner
-			this.cx.moveTo(aX + hyp * Math.cos(0.25*Math.PI + actor.orient),
-							aY + hyp * Math.sin(0.25*Math.PI + actor.orient));
+			this.cx.moveTo(aX + hyp * Math.cos(theta + actor.orient),
+						aY + hyp * Math.sin(theta + actor.orient));
 			// second corner
-			this.cx.lineTo(aX + hyp * Math.cos(0.75*Math.PI + actor.orient),
-							aY + hyp * Math.sin(0.75*Math.PI + actor.orient));
+			this.cx.lineTo(aX + hyp * Math.cos(Math.PI - theta + actor.orient),
+						aY + hyp * Math.sin(Math.PI - theta + actor.orient));
 			// third corner
-			this.cx.lineTo(aX + hyp * Math.cos(1.25*Math.PI + actor.orient),
-							aY + hyp * Math.sin(1.25*Math.PI + actor.orient));
+			this.cx.lineTo(aX + hyp * Math.cos(Math.PI + theta + actor.orient),
+						aY + hyp * Math.sin(Math.PI + theta + actor.orient));
 			// fourth corner
-			this.cx.lineTo(aX + hyp * Math.cos(1.75*Math.PI + actor.orient),
-							aY + hyp * Math.sin(1.75*Math.PI + actor.orient));
+			this.cx.lineTo(aX + hyp * Math.cos(-theta + actor.orient),
+						aY + hyp * Math.sin(-theta + actor.orient));
 			// closePath draws line back to first location in path and completes
 			// the path
 			this.cx.closePath();
@@ -213,11 +223,11 @@ Level.prototype.spawnAsteroid = function() {
 	var velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
 	// can't have negative sizes
 	// minimum size is 15x20
-	//var size = new Vector(15 + Math.abs(200 * rand1), 
-	//						20 + Math.abs(200 * rand2));
+	var size = new Vector(15 + Math.abs(200 * rand1), 
+							20 + Math.abs(200 * rand2));
 	
 	//manually set size, don't mess with randoms
-	var size = new Vector(50, 300);
+	//var size = new Vector(50, 300);
 	
 	var asteroid = new Asteroid(pos, size, spin, velocity)
 	this.actors.push(asteroid);
@@ -227,7 +237,7 @@ Level.prototype.spawnAsteroid = function() {
 function Asteroid(pos, size, spin, velocity) {
 	this.pos = pos;
 	this.size = size;
-	this.hitRadius = Math.max(this.size.x, this.size.y) / 2;
+	this.hitRadius = (this.size.x / 2 + this.size.y / 2) / 2; // average
 	this.spin = spin;
 	this.velocity = velocity;
 	this.orient = 0;
