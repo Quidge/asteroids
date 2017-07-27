@@ -58,11 +58,13 @@
 * turnSpeed (max speed player can turn)
 * accel (the value which is used to determine at which Player.speed can increase)
 #### Methods
+* act
+* shoot: triggers when spacebar event is detected. adds Missile to level.actors
 * turn
 * jet (affects change in velocity)
 * updatePosition (takes new velocity and applies it to position)
 #### Properties
-* type ("player")
+* type = "player"
 
 ### Asteroid
 #### Vars

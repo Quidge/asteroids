@@ -307,9 +307,15 @@ function Player(pos) {
 }
 Player.prototype.type = "player";
 Player.prototype.act = function(step, level, keys) {
+	this.shoot(level, keys);
 	this.turn(step, keys); // affects orientation
 	this.jet(step, keys); // affects velocity
 	this.updatePosition(); //applies new velocity to position
+};
+Player.prototype.shoot = function(level, keys) {
+	if (keys.space) {
+		console.log('fire!');
+	}
 };
 Player.prototype.turn = function(step, keys) {
 	if (keys.left && !keys.right) {
@@ -330,19 +336,23 @@ Player.prototype.updatePosition = function() {
 	this.pos.x = this.pos.x + this.velocity.x;
 	this.pos.y = this.pos.y + this.velocity.y;
 };
-Player.prototype.shoot = function() {
-	return // new Missile(stuff);
-};
 
-function Missile(pos) {
-	this.pos = pos;
-	this.size = new Vector(2, 2);
-	this.speed = 20; 
+function Missile(intialPos, velocity, orient) {
+	this.pos = initialPos;
+	this.size = new Vector(5, 2);
+	this.orient = orient;
+	this.velocity = velocity.plus(new Vector(5, 5));
+	this.distTravel = 0;
 }
 Missile.prototype.type = "missile";
-Missile.prototype.fizzle = function() {
-	return; //not sure what to do here
+Missile.prototype.act = function(step) {
+	this.updatePosition(); // also updates distTravel
 };
+Missile.prototype.updatePosition = function() {
+	var oldPos = this.pos;
+	this.pos = this.pos.plus(this.velocity);
+	this.distTravel += Math.hypot(this.pos.x - oldPos.x, this.pos.y - oldPos.y);
+}
 
 // helper stuff
 function Vector(x, y) {
@@ -372,7 +382,7 @@ function runAnimation(frameFunc) {
 	requestAnimationFrame(frame);
 }
 
-var arrowCodes = {37: "left", 38: "up", 39: "right"}
+var arrowCodes = {37: "left", 38: "up", 39: "right", 32: "space"}
 
 function trackKeys(codes) {
 	var pressed = Object.create(null);
