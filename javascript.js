@@ -202,6 +202,16 @@ Level.prototype.checkClip = function(actor) {
 Level.prototype.transport = function(actor, newPos) {
 	actor.pos = newPos;
 };
+Level.prototype.removeActor = function(actor) {
+	var index = this.actors.indexOf(actor);
+	if (index > -1) {
+		this.actors.splice(index, 1);
+		return true;
+	}
+	else {
+		return false;
+	}
+};
 
 var maxStep = 0.05;
 
@@ -391,7 +401,8 @@ function runLevel(level, Display) {
 
 function runGame(Display) {
 	var level = new Level();
-	level.actors.push(new Player(new Vector(0,0)));
+	var player = new Player(new Vector(0,0));
+	level.actors.push(player);
 	level.spawnAsteroid();
 	level.spawnAsteroid();
 	level.spawnAsteroid();
