@@ -25,6 +25,9 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 	this.drawBackground();
 	// both ship and asteroids are actors
 	this.drawActors();
+	if (this.level.status != 0)
+		this.drawResolution(); 	// if level.status not 0 (normal running state),
+								// will render some "won" or "lost" overlay
 };
 CanvasDisplay.prototype.clearDisplay = function() {
 	this.cx.clearRect(0, 0, 
@@ -114,6 +117,25 @@ CanvasDisplay.prototype.drawActors = function() {
 		}
 	}; 
 };
+CanvasDisplay.prototype.drawResolution = function() {
+	this.cx.globalAlpha = 0.8;
+	this.cx.fillStyle = "black";
+	this.cx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+	this.cx.globalAlpha = 1.0;
+	
+	this.cx.font = "small-caps 700 48px sans-serif"
+	this.cx.textBaseline = "middle";
+	this.cx.textAlign = "center";
+	this.cx.fillStyle = "red";
+	
+	if (this.level.status == -1) {
+		this.cx.fillText("damn. you died homie.",
+						this.canvas.width/2, this.canvas.height/2);
+	} else if (this.level.status == 1) {
+		this.cx.fillText("you won homie, props.",
+						this.canvas.width/2, this.canvas.height/2);
+	}
+}
 
 function Level() {
 	this.length = 600;
