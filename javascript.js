@@ -224,31 +224,36 @@ Level.prototype.animate = function(step, keys) {
 		step -= thisStep;
 	}
 };
-Level.prototype.spawnAsteroid = function() {
+Level.prototype.spawnAsteroid = function(pos, size, spin, velocity) {
 	
-	var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
-	var rand2 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+	if (pos && size && spin && velocity) { 
+		// only take parameters if all are present
+		var asteroid = new Asteroid(pos, size, spin, velocity);
+	} else {
+		var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+		var rand2 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
 
-	// Sets start position to be at random location on some wall
-	// If in the extraordinarily unlikely scenario that rand1 == rand2, 
-	// start position is set at 300,300 (bottom right corner)
-	if (rand1 > rand2)
-		var pos = new Vector(300*rand1, 300);
-	else if (rand1 < rand2)
-		var pos = new Vector(300, 300*rand1);
-	else
-		var pos = new Vector(300, 300);
-	var spin = 5 * rand1;
-	var velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
-	// can't have negative sizes
-	// minimum size is 15x20
-	var size = new Vector(15 + Math.abs(200 * rand1), 
-							20 + Math.abs(200 * rand2));
+		// Sets start position to be at random location on some wall
+		// If in the extraordinarily unlikely scenario that rand1 == rand2, 
+		// start position is set at 300,300 (bottom right corner)
+		if (rand1 > rand2)
+			var pos = new Vector(300*rand1, 300);
+		else if (rand1 < rand2)
+			var pos = new Vector(300, 300*rand1);
+		else
+			var pos = new Vector(300, 300);
+		var spin = 5 * rand1;
+		var velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
+		// can't have negative sizes
+		// minimum size is 15x20
+		var size = new Vector(15 + Math.abs(200 * rand1), 
+								20 + Math.abs(200 * rand2));
 	
-	//manually set size, don't mess with randoms
-	//var size = new Vector(50, 300);
+		//manually set size, don't mess with randoms
+		//var size = new Vector(50, 300);
 	
-	var asteroid = new Asteroid(pos, size, spin, velocity)
+		var asteroid = new Asteroid(pos, size, spin, velocity);
+	}
 	this.actors.push(asteroid);
 };
 
@@ -269,7 +274,7 @@ Asteroid.prototype.act = function(step) {
 Asteroid.prototype.fracture = function() {
 	if (this.size > 2) {
 		return //an array with 2-3 spawned child asteroids
-	} else
+	} else 
 		// if an asteroid is under a certain size, it won't split smaller
 		return false;
 };
