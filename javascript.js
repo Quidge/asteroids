@@ -55,8 +55,8 @@ CanvasDisplay.prototype.drawActors = function() {
 		if (actor.type == "missile") {
 			this.cx.beginPath();
 			this.cx.moveTo(aX, aY);
-			this.cx.lineTo(aX + Math.cos(actor.orient) * actor.size.y,
-							aY + Math.sin(actor.orient) * actor.size.y);
+			this.cx.lineTo(aX - Math.cos(actor.orient) * actor.size.y,
+							aY - Math.sin(actor.orient) * actor.size.y);
 			this.cx.closePath();
 			this.cx.stroke();
 		}
@@ -167,31 +167,52 @@ Level.prototype.checkClip = function(actor) {
 	for (var i = 0; i < this.actors.length; i++) {
 		var other = this.actors[i];
 		if (actor !== other) {
-			// This is a lot of logic. The pattern is this:
-			// If actor and other were in only one dimension (x axis), would
-			// their hit radii overlap? If yes, check to see if they would also
-			// overlap in the y dimension. 
-
-			var ax = actor.pos.x, ay = actor.pos.y, ar = actor.hitRadius;
-			var ox = other.pos.x, oy = other.pos.y, or = other.hitRadius;
-			
-			//console.log(actor.pos.x, ay = actor.pos.y, ar = actor.hitRadius,						other.pos.x, oy = other.pos.y, or = other.hitRadius);
-			
-			// check right side (actorX > otherX)
-			if (ax > ox && ax - ar < ox + or) {
-					// check below (py < ay)
-				if ((ay < oy && ay + ar > oy - or) ||
-					// check above (py > ay)
-					(ay > oy && ay - ar < oy + or)) {
-					clipType = other.type;
+			var ax = actor.pos.x, ay = actor.pos.y;
+			var ox = other.pos.x, oy = other.pos.y; ;
+			if (actor.type != "missile" && other.type != "missile") {
+				// This is a lot of logic. The pattern is this:
+				// If actor and other were in only one dimension (x axis), would
+				// their hit radii overlap? If yes, check to see if they would
+				// also overlap in the y dimension. 
+				
+				var ar = actor.hitRadius, or = other.hitRadius;
+				
+				// check right side (actorX > otherX)
+				if (ax > ox && ax - ar < ox + or) {
+						// check below (py < ay)
+					if ((ay < oy && ay + ar > oy - or) ||
+						// check above (py > ay)
+						(ay > oy && ay - ar < oy + or)) {
+						clipType = other.type;
+					}
+				// check left side (actorX < otherX)
+				} else if (ax < ox && ax + ar > ox - or) {
+						// check below (py < ay)
+					if ((ay < oy && ay + ar > oy - or) ||
+						// check above (py > ay)
+						(ay > oy && ay - ar < oy + or)) {
+						clipType = other.type;
+					}
 				}
-			// check left side (actorX < otherX)
-			} else if (ax < ox && ax + ar > ox - or) {
-					// check below (py < ay)
-				if ((ay < oy && ay + ar > oy - or) ||
-					// check above (py > ay)
-					(ay > oy && ay - ar < oy + or)) {
-					clipType = other.type;
+			}
+			// special hit detection for missiles
+			if (actor.type == "missile") {
+			
+			// Bullets cheat because they're evaluated as points. The bullet.pos
+			// is the only thing that matters. If the tail (which is drawn
+			// behind the bullet) hits and but the bullet.pos doesn't, well 
+			// too bad. This is easier.
+			
+				var or = other.hitRadius;
+				// bullet left of other.pos
+				if (ax < ox && ax > ox - or) {
+					// check below
+					// check above
+				}
+				// bullet right of other.pos
+				else if (ax > ox && ax < ox + or) {
+					// check below
+					// check above
 				}
 			}
 		}
@@ -356,7 +377,7 @@ Player.prototype.updatePosition = function() {
 };
 
 function Missile(initialPos, velocity, orient) {
-	this.pos = initialPos; //CanvasDisplay draws missiles FROM pos, in the direction of orient
+	this.pos = initialPos; //CanvasDisplay draws missiles beyond pos, in the opposite direction of orient (missiles have their body 'tail' behind their pos
 	this.size = new Vector(5, 10);
 	this.orient = orient;
 	this.velocity = new Vector(Math.cos(this.orient) * 5,
