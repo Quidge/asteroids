@@ -136,10 +136,10 @@ CanvasDisplay.prototype.drawResolution = function() {
 	this.cx.fillStyle = "red";
 	
 	if (this.level.status == -1) {
-		this.cx.fillText("damn. you died homie.",
+		this.cx.fillText("darn. you died.",
 						this.canvas.width/2, this.canvas.height/2);
 	} else if (this.level.status == 1) {
-		this.cx.fillText("you won homie, props.",
+		this.cx.fillText("you won fool, props.",
 						this.canvas.width/2, this.canvas.height/2);
 	}
 }
