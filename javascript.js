@@ -18,13 +18,13 @@ CanvasDisplay.prototype.clear = function() {
 };
 CanvasDisplay.prototype.drawFrame = function(step) {
 	// step will be the elapsed time since last frame
-	this.animationTime += step;
+	this.animationTime += step; // total elapsed time;
 	
 	// entire display redraw after each frame
 	this.clearDisplay();
 	this.drawBackground();
 	// both ship and asteroids are actors
-	this.drawActors();
+	this.drawActors(); 
 	if (this.level.status != 0)
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
@@ -37,6 +37,7 @@ CanvasDisplay.prototype.drawBackground = function() {
 	this.cx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
 };
 CanvasDisplay.prototype.drawActors = function() {
+	console.log(this.animationTime);
 	for (var i = 0; i < this.level.actors.length; i++) {
 		
 		var actor = this.level.actors[i];
@@ -51,8 +52,15 @@ CanvasDisplay.prototype.drawActors = function() {
 		this.cx.closePath();
 		this.cx.stroke();
 		
-		console.log(actor.size.x, actor.hitRadius);
-		
+		if (actor.type == "missile") {
+			this.cx.beginPath();
+			this.cx.moveTo(aX, aY);
+			this.cx.lineTo(aX + Math.cos(actor.orient) * actor.size.y,
+							aY + Math.sin(actor.orient) * actor.size.y);
+			this.cx.closePath();
+			this.cx.stroke();
+		}
+				
 		if (actor.type == "player") {
 			this.cx.save(); 
 			this.cx.translate(aX, aY); //offset to actor location
@@ -129,10 +137,10 @@ CanvasDisplay.prototype.drawResolution = function() {
 	this.cx.fillStyle = "red";
 	
 	if (this.level.status == -1) {
-		this.cx.fillText("damn. you died homie.",
+		this.cx.fillText("darn. you died.",
 						this.canvas.width/2, this.canvas.height/2);
 	} else if (this.level.status == 1) {
-		this.cx.fillText("you won homie, props.",
+		this.cx.fillText("you won fool, props.",
 						this.canvas.width/2, this.canvas.height/2);
 	}
 }
@@ -202,6 +210,16 @@ Level.prototype.checkClip = function(actor) {
 Level.prototype.transport = function(actor, newPos) {
 	actor.pos = newPos;
 };
+Level.prototype.removeActor = function(actor) {
+	var index = this.actors.indexOf(actor);
+	if (index > -1) {
+		this.actors.splice(index, 1);
+		return true;
+	}
+	else {
+		return false;
+	}
+};
 
 var maxStep = 0.05;
 
@@ -217,6 +235,9 @@ Level.prototype.animate = function(step, keys) {
 				console.log('hit!');
 				this.status = -1; //-1 means lost; default (running) is 0
 			}
+			if (actor.type == "missile" && actor.distTravel > 400) {
+				this.removeActor(actor);
+			}
 			if (collision == "wall")
 				this.transport(actor, actor.pos.times(-1));
 		}, this);
@@ -224,31 +245,36 @@ Level.prototype.animate = function(step, keys) {
 		step -= thisStep;
 	}
 };
-Level.prototype.spawnAsteroid = function() {
+Level.prototype.spawnAsteroid = function(pos, size, spin, velocity) {
 	
-	var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
-	var rand2 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+	if (pos && size && spin && velocity) { 
+		// only take parameters if all are present
+		var asteroid = new Asteroid(pos, size, spin, velocity);
+	} else {
+		var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+		var rand2 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
 
-	// Sets start position to be at random location on some wall
-	// If in the extraordinarily unlikely scenario that rand1 == rand2, 
-	// start position is set at 300,300 (bottom right corner)
-	if (rand1 > rand2)
-		var pos = new Vector(300*rand1, 300);
-	else if (rand1 < rand2)
-		var pos = new Vector(300, 300*rand1);
-	else
-		var pos = new Vector(300, 300);
-	var spin = 5 * rand1;
-	var velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
-	// can't have negative sizes
-	// minimum size is 15x20
-	var size = new Vector(15 + Math.abs(200 * rand1), 
-							20 + Math.abs(200 * rand2));
+		// Sets start position to be at random location on some wall
+		// If in the extraordinarily unlikely scenario that rand1 == rand2, 
+		// start position is set at 300,300 (bottom right corner)
+		if (rand1 > rand2)
+			var pos = new Vector(300*rand1, 300);
+		else if (rand1 < rand2)
+			var pos = new Vector(300, 300*rand1);
+		else
+			var pos = new Vector(300, 300);
+		var spin = 5 * rand1;
+		var velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
+		// can't have negative sizes
+		// minimum size is 15x20
+		var size = new Vector(15 + Math.abs(200 * rand1), 
+								20 + Math.abs(200 * rand2));
 	
-	//manually set size, don't mess with randoms
-	//var size = new Vector(50, 300);
+		//manually set size, don't mess with randoms
+		//var size = new Vector(50, 300);
 	
-	var asteroid = new Asteroid(pos, size, spin, velocity)
+		var asteroid = new Asteroid(pos, size, spin, velocity);
+	}
 	this.actors.push(asteroid);
 };
 
@@ -269,7 +295,7 @@ Asteroid.prototype.act = function(step) {
 Asteroid.prototype.fracture = function() {
 	if (this.size > 2) {
 		return //an array with 2-3 spawned child asteroids
-	} else
+	} else 
 		// if an asteroid is under a certain size, it won't split smaller
 		return false;
 };
@@ -292,9 +318,22 @@ function Player(pos) {
 }
 Player.prototype.type = "player";
 Player.prototype.act = function(step, level, keys) {
+	this.shoot(level, keys);
 	this.turn(step, keys); // affects orientation
 	this.jet(step, keys); // affects velocity
 	this.updatePosition(); //applies new velocity to position
+};
+Player.prototype.shoot = function(level, keys) {
+	/*addEventListener("keyup", function(event) {
+		if (event.keyCode == 32 || event.key == 32) {
+			console.log('yo!');
+			event.preventDefault();
+			level.actors.push(new Missile(this.pos, this.velocity, this.orient));
+		};
+	});*/
+	if (keys.space) {
+		level.actors.push(new Missile(this.pos, this.velocity, this.orient));
+	}
 };
 Player.prototype.turn = function(step, keys) {
 	if (keys.left && !keys.right) {
@@ -315,19 +354,24 @@ Player.prototype.updatePosition = function() {
 	this.pos.x = this.pos.x + this.velocity.x;
 	this.pos.y = this.pos.y + this.velocity.y;
 };
-Player.prototype.shoot = function() {
-	return // new Missile(stuff);
-};
 
-function Missile(pos) {
-	this.pos = pos;
-	this.size = new Vector(2, 2);
-	this.speed = 20; 
+function Missile(initialPos, velocity, orient) {
+	this.pos = initialPos; //CanvasDisplay draws missiles FROM pos, in the direction of orient
+	this.size = new Vector(5, 10);
+	this.orient = orient;
+	this.velocity = new Vector(Math.cos(this.orient) * 5,
+								Math.sin(this.orient) * 5);
+	this.distTravel = 0;
 }
 Missile.prototype.type = "missile";
-Missile.prototype.fizzle = function() {
-	return; //not sure what to do here
+Missile.prototype.act = function(step) {
+	this.updatePosition(); // also updates distTravel
 };
+Missile.prototype.updatePosition = function() {
+	var oldPos = this.pos;
+	this.pos = this.pos.plus(this.velocity);
+	this.distTravel += Math.hypot(this.pos.x - oldPos.x, this.pos.y - oldPos.y);
+}
 
 // helper stuff
 function Vector(x, y) {
@@ -357,7 +401,7 @@ function runAnimation(frameFunc) {
 	requestAnimationFrame(frame);
 }
 
-var arrowCodes = {37: "left", 38: "up", 39: "right"}
+var arrowCodes = {37: "left", 38: "up", 39: "right", 32: "space"};
 
 function trackKeys(codes) {
 	var pressed = Object.create(null);
@@ -386,7 +430,8 @@ function runLevel(level, Display) {
 
 function runGame(Display) {
 	var level = new Level();
-	level.actors.push(new Player(new Vector(0,0)));
+	var player = new Player(new Vector(0,0));
+	level.actors.push(player);
 	level.spawnAsteroid();
 	level.spawnAsteroid();
 	level.spawnAsteroid();

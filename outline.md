@@ -15,6 +15,7 @@
 * transport (takes actor, new Vector): changes actor.pos to second arg Vector
 * checkClip (takes actor) returns actor.type (or "wall") if actor.hitRadius is touching anything   
 * spawnAsteroid: creates new Asteroid with random attributes and adds it to the level.actors array
+* removeActor(actor) if actor is in this.actors array, remove actor from array and return true else return false
 
 
 ## Helper stuff
@@ -57,11 +58,13 @@
 * turnSpeed (max speed player can turn)
 * accel (the value which is used to determine at which Player.speed can increase)
 #### Methods
+* act
+* shoot: triggers when spacebar event is detected. adds Missile to level.actors
 * turn
 * jet (affects change in velocity)
 * updatePosition (takes new velocity and applies it to position)
 #### Properties
-* type ("player")
+* type = "player"
 
 ### Asteroid
 #### Vars
