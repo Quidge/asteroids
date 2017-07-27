@@ -18,13 +18,13 @@ CanvasDisplay.prototype.clear = function() {
 };
 CanvasDisplay.prototype.drawFrame = function(step) {
 	// step will be the elapsed time since last frame
-	this.animationTime += step;
+	this.animationTime += step; // total elapsed time;
 	
 	// entire display redraw after each frame
 	this.clearDisplay();
 	this.drawBackground();
 	// both ship and asteroids are actors
-	this.drawActors();
+	this.drawActors(); 
 	if (this.level.status != 0)
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
@@ -37,6 +37,7 @@ CanvasDisplay.prototype.drawBackground = function() {
 	this.cx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
 };
 CanvasDisplay.prototype.drawActors = function() {
+	console.log(this.animationTime);
 	for (var i = 0; i < this.level.actors.length; i++) {
 		
 		var actor = this.level.actors[i];
@@ -323,6 +324,13 @@ Player.prototype.act = function(step, level, keys) {
 	this.updatePosition(); //applies new velocity to position
 };
 Player.prototype.shoot = function(level, keys) {
+	/*addEventListener("keyup", function(event) {
+		if (event.keyCode == 32 || event.key == 32) {
+			console.log('yo!');
+			event.preventDefault();
+			level.actors.push(new Missile(this.pos, this.velocity, this.orient));
+		};
+	});*/
 	if (keys.space) {
 		level.actors.push(new Missile(this.pos, this.velocity, this.orient));
 	}
@@ -393,7 +401,7 @@ function runAnimation(frameFunc) {
 	requestAnimationFrame(frame);
 }
 
-var arrowCodes = {37: "left", 38: "up", 39: "right", 32: "space"}
+var arrowCodes = {37: "left", 38: "up", 39: "right", 32: "space"};
 
 function trackKeys(codes) {
 	var pressed = Object.create(null);
