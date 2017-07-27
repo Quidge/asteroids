@@ -139,9 +139,8 @@ Level.prototype.checkClip = function(actor) {
 		if (actor !== other) {
 			// This is a lot of logic. The pattern is this:
 			// If actor and other were in only one dimension (x axis), would
-			// they collide? If yes, check to see if they would also collide in 
-			// their second dimension by checking the y coordinates.
-			// 
+			// their hit radii overlap? If yes, check to see if they would also
+			// overlap in the y dimension. 
 
 			var ax = actor.pos.x, ay = actor.pos.y, ar = actor.hitRadius;
 			var ox = other.pos.x, oy = other.pos.y, or = other.hitRadius;
@@ -186,8 +185,6 @@ var maxStep = 0.05;
 
 // step will be time since last animation frame
 Level.prototype.animate = function(step, keys) {
-	//if (this.status != null) {
-		 //end game in some way
 	
 	while (step > 0) {
 		var thisStep = Math.min(maxStep, step);
@@ -196,7 +193,7 @@ Level.prototype.animate = function(step, keys) {
 			var collision = this.checkClip(actor);
 			if (actor.type == "player" && collision == "asteroid") {
 				console.log('hit!');
-				//this.status = -1; //-1 means lost; default (running) is 0
+				this.status = -1; //-1 means lost; default (running) is 0
 			}
 			if (collision == "wall")
 				this.transport(actor, actor.pos.times(-1));
@@ -359,6 +356,9 @@ function runLevel(level, Display) {
 	runAnimation(function(step) {
 		level.animate(step, arrows);
 		display.drawFrame(step);
+		if (level.status !== 0) {
+			return false;
+		};
 	});
 }
 
