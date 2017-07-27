@@ -51,8 +51,15 @@ CanvasDisplay.prototype.drawActors = function() {
 		this.cx.closePath();
 		this.cx.stroke();
 		
-		console.log(actor.size.x, actor.hitRadius);
-		
+		if (actor.type == "missile") {
+			this.cx.beginPath();
+			this.cx.moveTo(aX, aY);
+			this.cx.lineTo(aX + Math.cos(actor.orient) * actor.size.y,
+							aY + Math.sin(actor.orient) * actor.size.y);
+			this.cx.closePath();
+			this.cx.stroke();
+		}
+				
 		if (actor.type == "player") {
 			this.cx.save(); 
 			this.cx.translate(aX, aY); //offset to actor location
@@ -227,6 +234,9 @@ Level.prototype.animate = function(step, keys) {
 				console.log('hit!');
 				this.status = -1; //-1 means lost; default (running) is 0
 			}
+			if (actor.type == "missile" && actor.distTravel > 400) {
+				this.removeActor(actor);
+			}
 			if (collision == "wall")
 				this.transport(actor, actor.pos.times(-1));
 		}, this);
@@ -314,7 +324,7 @@ Player.prototype.act = function(step, level, keys) {
 };
 Player.prototype.shoot = function(level, keys) {
 	if (keys.space) {
-		console.log('fire!');
+		level.actors.push(new Missile(this.pos, this.velocity, this.orient));
 	}
 };
 Player.prototype.turn = function(step, keys) {
@@ -337,11 +347,12 @@ Player.prototype.updatePosition = function() {
 	this.pos.y = this.pos.y + this.velocity.y;
 };
 
-function Missile(intialPos, velocity, orient) {
-	this.pos = initialPos;
-	this.size = new Vector(5, 2);
+function Missile(initialPos, velocity, orient) {
+	this.pos = initialPos; //CanvasDisplay draws missiles FROM pos, in the direction of orient
+	this.size = new Vector(5, 10);
 	this.orient = orient;
-	this.velocity = velocity.plus(new Vector(5, 5));
+	this.velocity = new Vector(Math.cos(this.orient) * 5,
+								Math.sin(this.orient) * 5);
 	this.distTravel = 0;
 }
 Missile.prototype.type = "missile";
