@@ -191,7 +191,7 @@ Level.prototype.checkClip = function(actor) {
 				if ((ay < oy && ay + ar > oy - or) ||
 					// check above (py > ay)
 					(ay > oy && ay - ar < oy + or)) {
-					clipType = other.type;
+					clipType = other;
 				}
 			// check left side (actorX < otherX)
 			} else if (ax < ox && ax + ar > ox - or) {
@@ -199,7 +199,7 @@ Level.prototype.checkClip = function(actor) {
 				if ((ay < oy && ay + ar > oy - or) ||
 					// check above (py > ay)
 					(ay > oy && ay - ar < oy + or)) {
-					clipType = other.type;
+					clipType = other;
 				}
 			}
 		}
@@ -238,8 +238,9 @@ Level.prototype.animate = function(step, keys) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
-			var collision = this.checkClip(actor); // output is string or false
-			if (actor.type == "player" && collision == "asteroid") {
+			// output is "wall", false, other actor object
+			var collision = this.checkClip(actor); 
+			if (actor.type == "player" && collision.type == "asteroid") {
 				console.log('hit!');
 				this.status = -1; //-1 means lost; default (running) is 0
 			}
