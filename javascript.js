@@ -162,29 +162,27 @@ Level.prototype.checkClip = function(actor) {
 	// assign clipType to other.type
 	// then check if actor is touching wall and assign "wall" to clipType if so
 	// finally, return clipType
-	var clipType = Object.create(null);
-	clipType.type = null;
+	var clipType = false;
 	
 	for (var i = 0; i < this.actors.length; i++) {
 		var other = this.actors[i];
 		if (actor !== other) {
 			var ax = actor.pos.x, ay = actor.pos.y;
-			var ox = other.pos.x, oy = other.pos.y; ;
-			if (actor.type != "missile" && other.type != "missile") {
+			var ox = other.pos.x, oy = other.pos.y;
+			var ar = (actor.hitRadius) ? actor.hitRadius : 0;
+			var or = (other.hitRadius) ? other.hitRadius : 0;
 				// This is a lot of logic. The pattern is this:
 				// If actor and other were in only one dimension (x axis), would
 				// their hit radii overlap? If yes, check to see if they would
 				// also overlap in the y dimension. 
-				
-				var ar = actor.hitRadius, or = other.hitRadius;
-				
+								
 				// check right side (actorX > otherX)
 				if (ax > ox && ax - ar < ox + or) {
 						// check below (py < ay)
 					if ((ay < oy && ay + ar > oy - or) ||
 						// check above (py > ay)
 						(ay > oy && ay - ar < oy + or)) {
-						clipType = other;
+						clipType = other.type;
 					}
 				// check left side (actorX < otherX)
 				} else if (ax < ox && ax + ar > ox - or) {
@@ -192,11 +190,11 @@ Level.prototype.checkClip = function(actor) {
 					if ((ay < oy && ay + ar > oy - or) ||
 						// check above (py > ay)
 						(ay > oy && ay - ar < oy + or)) {
-						clipType = other;
+						clipType = other.type;
 					}
 				}
 			}
-			// special hit detection for missiles
+			/*// special hit detection for missiles
 			if (actor.type == "missile") {
 			
 			// Bullets cheat because they're evaluated as points. The bullet.pos
@@ -214,12 +212,12 @@ Level.prototype.checkClip = function(actor) {
 				else if (ax > ox && ax < ox + or) {
 					// check below
 					// check above
-				}*/
+				}
 				if ( (ox - or < ax < ox || ox + or > ax > ox) && 
 					 (oy - or < ay < oy || oy + or > ay > oy) ) {
 					clipType = other;
 				}
-			}
+			}*/
 		}
 	}
 	
@@ -229,8 +227,7 @@ Level.prototype.checkClip = function(actor) {
 	// side of the level to the other.
 	if (Math.abs(actor.pos.x) > this.length/2 ||
 		Math.abs(actor.pos.y) > this.height/2)
-		clipType.type = "wall";
-	console.log(clipType);
+		clipType = "wall";
 	return clipType;
 };
 Level.prototype.transport = function(actor, newPos) {
