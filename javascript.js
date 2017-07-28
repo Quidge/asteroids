@@ -37,7 +37,6 @@ CanvasDisplay.prototype.drawBackground = function() {
 	this.cx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
 };
 CanvasDisplay.prototype.drawActors = function() {
-	console.log(this.animationTime);
 	for (var i = 0; i < this.level.actors.length; i++) {
 		
 		var actor = this.level.actors[i];
@@ -162,41 +161,47 @@ Level.prototype.checkClip = function(actor) {
 	// assign clipType to other.type
 	// then check if actor is touching wall and assign "wall" to clipType if so
 	// finally, return clipType
-	var clipType = Object.create(null);
-	clipType.type = null;
+	var clipType = false;
 	
 	for (var i = 0; i < this.actors.length; i++) {
 		var other = this.actors[i];
 		if (actor !== other) {
 			var ax = actor.pos.x, ay = actor.pos.y;
-			var ox = other.pos.x, oy = other.pos.y; ;
-			if (actor.type != "missile" && other.type != "missile") {
-				// This is a lot of logic. The pattern is this:
-				// If actor and other were in only one dimension (x axis), would
-				// their hit radii overlap? If yes, check to see if they would
-				// also overlap in the y dimension. 
+			var ox = other.pos.x, oy = other.pos.y;
+			var ar, or;
+			if (actor.hitRadius) 
+				ar = actor.hitRadius;
+			else ar = 0;
+			if (other.hitRadius)
+				or = other.hitRadius;
+			else or = 0;
+			//var ar = (actor.hitRadius) ? actor.hitRadius : 0;
+			//var or = (other.hitRadius) ? other.hitRadius : 0;
 				
-				var ar = actor.hitRadius, or = other.hitRadius;
-				
-				// check right side (actorX > otherX)
-				if (ax > ox && ax - ar < ox + or) {
-						// check below (py < ay)
-					if ((ay < oy && ay + ar > oy - or) ||
-						// check above (py > ay)
-						(ay > oy && ay - ar < oy + or)) {
-						clipType = other;
-					}
-				// check left side (actorX < otherX)
-				} else if (ax < ox && ax + ar > ox - or) {
-						// check below (py < ay)
-					if ((ay < oy && ay + ar > oy - or) ||
-						// check above (py > ay)
-						(ay > oy && ay - ar < oy + or)) {
-						clipType = other;
-					}
+			// This is a lot of logic. The pattern is this:
+			// If actor and other were in only one dimension (x axis), would
+			// their hit radii overlap? If yes, check to see if they would
+			// also overlap in the y dimension. 
+							
+			// check right side (actorX > otherX)
+			if (ax > ox && ax - ar < ox + or) {
+					// check below (py < ay)
+				if ((ay < oy && ay + ar > oy - or) ||
+					// check above (py > ay)
+					(ay > oy && ay - ar < oy + or)) {
+					clipType = other.type;
+				}
+			// check left side (actorX < otherX)
+			} else if (ax < ox && ax + ar > ox - or) {
+					// check below (py < ay)
+				if ((ay < oy && ay + ar > oy - or) ||
+					// check above (py > ay)
+					(ay > oy && ay - ar < oy + or)) {
+					clipType = other.type;
 				}
 			}
-			// special hit detection for missiles
+		}
+			/*// special hit detection for missiles
 			if (actor.type == "missile") {
 			
 			// Bullets cheat because they're evaluated as points. The bullet.pos
@@ -214,13 +219,12 @@ Level.prototype.checkClip = function(actor) {
 				else if (ax > ox && ax < ox + or) {
 					// check below
 					// check above
-				}*/
+				}
 				if ( (ox - or < ax < ox || ox + or > ax > ox) && 
 					 (oy - or < ay < oy || oy + or > ay > oy) ) {
 					clipType = other;
 				}
-			}
-		}
+			}*/
 	}
 	
 	// check for wall collision
@@ -229,7 +233,7 @@ Level.prototype.checkClip = function(actor) {
 	// side of the level to the other.
 	if (Math.abs(actor.pos.x) > this.length/2 ||
 		Math.abs(actor.pos.y) > this.height/2)
-		clipType.type = "wall";
+		clipType = "wall";
 	console.log(clipType);
 	return clipType;
 };
@@ -256,15 +260,15 @@ Level.prototype.animate = function(step, keys) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
-			var collision = this.checkClip(actor);
-			if (actor.type == "player" && collision.type == "asteroid") {
+			var collision = this.checkClip(actor); // output is string or false
+			if (actor.type == "player" && collision == "asteroid") {
 				console.log('hit!');
 				this.status = -1; //-1 means lost; default (running) is 0
 			}
 			if (actor.type == "missile" && actor.distTravel > 400) {
 				this.removeActor(actor);
 			}
-			if (collision.type == "wall")
+			if (collision == "wall")
 				this.transport(actor, actor.pos.times(-1));
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
