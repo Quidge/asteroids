@@ -156,27 +156,29 @@ function Level() {
 
 Level.prototype.checkClip = function(actor) {
 	
+	var clipType = false;
+	
 	// base state is not touching anything, hence false
 	// first check if passed actor is touching anything in level.actors and
 	// assign clipType to other.type
 	// then check if actor is touching wall and assign "wall" to clipType if so
 	// finally, return clipType
-	var clipType = false;
 	
 	for (var i = 0; i < this.actors.length; i++) {
 		var other = this.actors[i];
 		if (actor !== other) {
+			// using these shorthand abbreviations to make things easier
+			// to keep on fewer lines
 			var ax = actor.pos.x, ay = actor.pos.y;
 			var ox = other.pos.x, oy = other.pos.y;
-			var ar, or;
+			
+			var ar, or; 
 			if (actor.hitRadius) 
 				ar = actor.hitRadius;
 			else ar = 0;
 			if (other.hitRadius)
 				or = other.hitRadius;
 			else or = 0;
-			//var ar = (actor.hitRadius) ? actor.hitRadius : 0;
-			//var or = (other.hitRadius) ? other.hitRadius : 0;
 				
 			// This is a lot of logic. The pattern is this:
 			// If actor and other were in only one dimension (x axis), would
@@ -201,30 +203,6 @@ Level.prototype.checkClip = function(actor) {
 				}
 			}
 		}
-			/*// special hit detection for missiles
-			if (actor.type == "missile") {
-			
-			// Bullets cheat because they're evaluated as points. The bullet.pos
-			// is the only thing that matters. If the tail (which is drawn
-			// behind the bullet) hits and but the bullet.pos doesn't, well 
-			// too bad. This is easier.
-			
-				var or = other.hitRadius;
-				// bullet left of other.pos
-				/*if (ax < ox && ax > ox - or) {
-					// check below
-					// check above
-				}
-				// bullet right of other.pos
-				else if (ax > ox && ax < ox + or) {
-					// check below
-					// check above
-				}
-				if ( (ox - or < ax < ox || ox + or > ax > ox) && 
-					 (oy - or < ay < oy || oy + or > ay > oy) ) {
-					clipType = other;
-				}
-			}*/
 	}
 	
 	// check for wall collision
