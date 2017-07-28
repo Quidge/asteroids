@@ -37,7 +37,6 @@ CanvasDisplay.prototype.drawBackground = function() {
 	this.cx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
 };
 CanvasDisplay.prototype.drawActors = function() {
-	console.log(this.animationTime);
 	for (var i = 0; i < this.level.actors.length; i++) {
 		
 		var actor = this.level.actors[i];
@@ -169,31 +168,39 @@ Level.prototype.checkClip = function(actor) {
 		if (actor !== other) {
 			var ax = actor.pos.x, ay = actor.pos.y;
 			var ox = other.pos.x, oy = other.pos.y;
-			var ar = (actor.hitRadius) ? actor.hitRadius : 0;
-			var or = (other.hitRadius) ? other.hitRadius : 0;
-				// This is a lot of logic. The pattern is this:
-				// If actor and other were in only one dimension (x axis), would
-				// their hit radii overlap? If yes, check to see if they would
-				// also overlap in the y dimension. 
-								
-				// check right side (actorX > otherX)
-				if (ax > ox && ax - ar < ox + or) {
-						// check below (py < ay)
-					if ((ay < oy && ay + ar > oy - or) ||
-						// check above (py > ay)
-						(ay > oy && ay - ar < oy + or)) {
-						clipType = other.type;
-					}
-				// check left side (actorX < otherX)
-				} else if (ax < ox && ax + ar > ox - or) {
-						// check below (py < ay)
-					if ((ay < oy && ay + ar > oy - or) ||
-						// check above (py > ay)
-						(ay > oy && ay - ar < oy + or)) {
-						clipType = other.type;
-					}
+			var ar, or;
+			if (actor.hitRadius) 
+				ar = actor.hitRadius;
+			else ar = 0;
+			if (other.hitRadius)
+				or = other.hitRadius;
+			else or = 0;
+			//var ar = (actor.hitRadius) ? actor.hitRadius : 0;
+			//var or = (other.hitRadius) ? other.hitRadius : 0;
+				
+			// This is a lot of logic. The pattern is this:
+			// If actor and other were in only one dimension (x axis), would
+			// their hit radii overlap? If yes, check to see if they would
+			// also overlap in the y dimension. 
+							
+			// check right side (actorX > otherX)
+			if (ax > ox && ax - ar < ox + or) {
+					// check below (py < ay)
+				if ((ay < oy && ay + ar > oy - or) ||
+					// check above (py > ay)
+					(ay > oy && ay - ar < oy + or)) {
+					clipType = other.type;
+				}
+			// check left side (actorX < otherX)
+			} else if (ax < ox && ax + ar > ox - or) {
+					// check below (py < ay)
+				if ((ay < oy && ay + ar > oy - or) ||
+					// check above (py > ay)
+					(ay > oy && ay - ar < oy + or)) {
+					clipType = other.type;
 				}
 			}
+		}
 			/*// special hit detection for missiles
 			if (actor.type == "missile") {
 			
@@ -218,7 +225,6 @@ Level.prototype.checkClip = function(actor) {
 					clipType = other;
 				}
 			}*/
-		}
 	}
 	
 	// check for wall collision
@@ -228,6 +234,7 @@ Level.prototype.checkClip = function(actor) {
 	if (Math.abs(actor.pos.x) > this.length/2 ||
 		Math.abs(actor.pos.y) > this.height/2)
 		clipType = "wall";
+	console.log(clipType);
 	return clipType;
 };
 Level.prototype.transport = function(actor, newPos) {
