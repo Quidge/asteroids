@@ -162,7 +162,8 @@ Level.prototype.checkClip = function(actor) {
 	// assign clipType to other.type
 	// then check if actor is touching wall and assign "wall" to clipType if so
 	// finally, return clipType
-	var clipType = false;
+	var clipType = Object.create(null);
+	clipType.type = null;
 	
 	for (var i = 0; i < this.actors.length; i++) {
 		var other = this.actors[i];
@@ -183,7 +184,7 @@ Level.prototype.checkClip = function(actor) {
 					if ((ay < oy && ay + ar > oy - or) ||
 						// check above (py > ay)
 						(ay > oy && ay - ar < oy + or)) {
-						clipType = other.type;
+						clipType = other;
 					}
 				// check left side (actorX < otherX)
 				} else if (ax < ox && ax + ar > ox - or) {
@@ -191,7 +192,7 @@ Level.prototype.checkClip = function(actor) {
 					if ((ay < oy && ay + ar > oy - or) ||
 						// check above (py > ay)
 						(ay > oy && ay - ar < oy + or)) {
-						clipType = other.type;
+						clipType = other;
 					}
 				}
 			}
@@ -205,7 +206,7 @@ Level.prototype.checkClip = function(actor) {
 			
 				var or = other.hitRadius;
 				// bullet left of other.pos
-				if (ax < ox && ax > ox - or) {
+				/*if (ax < ox && ax > ox - or) {
 					// check below
 					// check above
 				}
@@ -213,6 +214,10 @@ Level.prototype.checkClip = function(actor) {
 				else if (ax > ox && ax < ox + or) {
 					// check below
 					// check above
+				}*/
+				if ( (ox - or < ax < ox || ox + or > ax > ox) && 
+					 (oy - or < ay < oy || oy + or > ay > oy) ) {
+					clipType = other;
 				}
 			}
 		}
@@ -224,8 +229,8 @@ Level.prototype.checkClip = function(actor) {
 	// side of the level to the other.
 	if (Math.abs(actor.pos.x) > this.length/2 ||
 		Math.abs(actor.pos.y) > this.height/2)
-		clipType = "wall";
-
+		clipType.type = "wall";
+	console.log(clipType);
 	return clipType;
 };
 Level.prototype.transport = function(actor, newPos) {
@@ -252,14 +257,14 @@ Level.prototype.animate = function(step, keys) {
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
 			var collision = this.checkClip(actor);
-			if (actor.type == "player" && collision == "asteroid") {
+			if (actor.type == "player" && collision.type == "asteroid") {
 				console.log('hit!');
 				this.status = -1; //-1 means lost; default (running) is 0
 			}
 			if (actor.type == "missile" && actor.distTravel > 400) {
 				this.removeActor(actor);
 			}
-			if (collision == "wall")
+			if (collision.type == "wall")
 				this.transport(actor, actor.pos.times(-1));
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
