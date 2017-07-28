@@ -11,12 +11,12 @@
 * animate  
   * runs if actions this.status != null
   * runs actor.act on all actors
-  * runs level.checkClip on all actors and does different things depending on what checkClip returns ("wall", player.type, etc)
+  * runs level.checkClip on all actors stores 
 * transport (takes actor, new Vector): changes actor.pos to second arg Vector
 * checkClip (takes actor) returns actor.type (or "wall") if actor.hitRadius is touching anything   
 * spawnAsteroid: creates new Asteroid with random attributes and adds it to the level.actors array
 * removeActor(actor) if actor is in this.actors array, remove actor from array and return true else return false
-
+* resolveCollition(actor, collision) does stuff to actor based on the collision object
 
 ## Helper stuff
 ### Vector
