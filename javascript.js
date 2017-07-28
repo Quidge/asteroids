@@ -239,20 +239,25 @@ Level.prototype.animate = function(step, keys) {
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
 			// output is "wall", false, other actor object
-			var collision = this.checkClip(actor); 
-			if (actor.type == "player" && collision.type == "asteroid") {
-				console.log('hit!');
-				this.status = -1; //-1 means lost; default (running) is 0
-			}
-			if (actor.type == "missile" && actor.distTravel > 400) {
-				this.removeActor(actor);
-			}
-			if (collision == "wall")
-				this.transport(actor, actor.pos.times(-1));
+			var collision = this.checkClip(actor);
+			this.resolveCollision(actor, collision);
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
 	}
+};
+Level.prototype.resolveCollision = function(actor, collision) {
+	if (!collision)
+		return false;
+	if (actor.type == "player" && collision.type == "asteroid") {
+		console.log('hit!');
+		this.status = -1; //-1 means lost; default (running) is 0
+	}
+	if (actor.type == "missile" && actor.distTravel > 400) {
+		this.removeActor(actor);
+	}
+	if (collision == "wall")
+		this.transport(actor, actor.pos.times(-1));
 };
 Level.prototype.spawnAsteroid = function(pos, size, spin, velocity) {
 	
