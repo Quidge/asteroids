@@ -260,15 +260,15 @@ Level.prototype.animate = function(step, keys) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			actor.act(thisStep, this, keys);
-			var collision = this.checkClip(actor);
-			if (actor.type == "player" && collision.type == "asteroid") {
+			var collision = this.checkClip(actor); // output is string or false
+			if (actor.type == "player" && collision == "asteroid") {
 				console.log('hit!');
 				this.status = -1; //-1 means lost; default (running) is 0
 			}
 			if (actor.type == "missile" && actor.distTravel > 400) {
 				this.removeActor(actor);
 			}
-			if (collision.type == "wall")
+			if (collision == "wall")
 				this.transport(actor, actor.pos.times(-1));
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
