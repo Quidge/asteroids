@@ -151,7 +151,7 @@ function Level() {
 	this.origin = new Vector(this.length/2, this.height/2);
 	// each actor present in actor is expected to have a position and size
 	this.actors = [];	
-	this.status = 0; // -1 is lost, 0 is running, 1 is won	
+	this.status = 0; // -1 is lost, 0 is running, 1 is won
 }
 
 Level.prototype.checkClip = function(actor) {
@@ -212,7 +212,6 @@ Level.prototype.checkClip = function(actor) {
 	if (Math.abs(actor.pos.x) > this.length/2 ||
 		Math.abs(actor.pos.y) > this.height/2)
 		clipType = "wall";
-	console.log(clipType);
 	return clipType;
 };
 Level.prototype.transport = function(actor, newPos) {
@@ -251,6 +250,7 @@ Level.prototype.animate = function(step, keys) {
 			// of whatever actor collided with
 			this.resolveCollision(actor, this.checkClip(actor));
 		}, this);
+		this.elapsedGameTime += thisStep;
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
 	}
@@ -339,29 +339,20 @@ function Player(pos) {
 	this.velocity = new Vector(0, 0); // direction ship is drifting in
 	this.accel = 100; // max velocity magnitude 
 	this.orient = 0; //in radians; begin pointing north
+	this.gunsReady = 100; //less than 100 means guns aren't ready
 }
 Player.prototype.type = "player";
 Player.prototype.act = function(step, level, keys) {
-	this.shoot(level, keys);
+	this.shoot(step, level, keys);
 	this.turn(step, keys); // affects orientation
 	this.jet(step, keys); // affects velocity
 	this.updatePosition(); //applies new velocity to position
+	this.gunsReady += step * 500; //guns 'charge' over time
 };
-Player.prototype.shoot = function(level, keys) {
-	/*addEventListener("keyup", function(event) {
-		if (event.keyCode == 32 || event.key == 32) {
-			console.log('yo!');
-			event.preventDefault();
+Player.prototype.shoot = function(step, level, keys) {	
+	if (keys.space && this.gunsReady >= 100) {
 			level.actors.push(new Missile(this.pos, this.velocity, this.orient));
-		};
-	});*/
-	
-	// stupid hack to make ship fire missiles at reasonable rate
-	//var recentMissile = 
-	
-	
-	if (keys.space) {
-		level.actors.push(new Missile(this.pos, this.velocity, this.orient));
+		this.gunsReady = 0; //this forces a delay after firing 
 	}
 };
 Player.prototype.turn = function(step, keys) {
@@ -436,12 +427,20 @@ function trackKeys(codes) {
 	var pressed = Object.create(null);
 	function handler(event) {
 		var down = event.type == "keydown";
-		pressed[codes[event.keyCode]] = down;
 		event.preventDefault();
+		pressed[codes[event.keyCode]] = down;
 	}
-	
 	addEventListener("keydown", handler);
 	addEventListener("keyup", handler);
+	
+	/*//special spacebar listener
+	addEventListener("keypress", function(event) {
+		var down = event.keyValue == 32; //spacebar
+		console.log('found me');
+		pressed.space = down;
+		event.preventDefault();
+	});
+	*/
 	return pressed;
 }
 
