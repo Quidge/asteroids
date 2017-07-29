@@ -355,6 +355,11 @@ Player.prototype.shoot = function(level, keys) {
 			level.actors.push(new Missile(this.pos, this.velocity, this.orient));
 		};
 	});*/
+	
+	// stupid hack to make ship fire missiles at reasonable rate
+	//var recentMissile = 
+	
+	
 	if (keys.space) {
 		level.actors.push(new Missile(this.pos, this.velocity, this.orient));
 	}
@@ -434,6 +439,7 @@ function trackKeys(codes) {
 		pressed[codes[event.keyCode]] = down;
 		event.preventDefault();
 	}
+	
 	addEventListener("keydown", handler);
 	addEventListener("keyup", handler);
 	return pressed;
