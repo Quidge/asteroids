@@ -237,10 +237,19 @@ Level.prototype.animate = function(step, keys) {
 	while (step > 0) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
+			// first run through actor's act method (usually just updates 
+			// position/orientation/velocity of actor)
 			actor.act(thisStep, this, keys);
+			// next remove 'spent' missiles, and short circuit if so
+			if (actor.type == "missile" && actor.distTravel > 400) {
+				this.removeActor(actor);
+				return;
+			}
 			// output is "wall", false, other actor object
 			var collision = this.checkClip(actor);
-			this.resolveCollision(actor, collision);
+			// checkClip returns either false, "wall", or the actual object
+			// of whatever actor collided with
+			this.resolveCollision(actor, this.checkClip(actor));
 		}, this);
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
@@ -253,8 +262,9 @@ Level.prototype.resolveCollision = function(actor, collision) {
 		console.log('hit!');
 		this.status = -1; //-1 means lost; default (running) is 0
 	}
-	if (actor.type == "missile" && actor.distTravel > 400) {
+	if (actor.type == "missile" && collision.type == "asteroid") {
 		this.removeActor(actor);
+		this.removeActor(collision);
 	}
 	if (collision == "wall")
 		this.transport(actor, actor.pos.times(-1));
