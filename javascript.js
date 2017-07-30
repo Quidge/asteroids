@@ -45,11 +45,12 @@ CanvasDisplay.prototype.drawActors = function() {
 		var aY = this.level.origin.y + actor.pos.y;
 		
 		// draw actor hitRadius (this is only for development)
-
-		this.cx.beginPath();
-		this.cx.arc(aX, aY, actor.hitRadius, 0, 7);
-		this.cx.closePath();
-		this.cx.stroke();
+		if (gameOptions.showHitRadius) {
+			this.cx.beginPath();
+			this.cx.arc(aX, aY, actor.hitRadius, 0, 7);
+			this.cx.closePath();
+			this.cx.stroke();
+		}
 		
 		if (actor.type == "missile") {
 			this.cx.beginPath();
@@ -264,6 +265,12 @@ Level.prototype.resolveCollision = function(actor, collision) {
 	}
 	if (actor.type == "missile" && collision.type == "asteroid") {
 		this.removeActor(actor);
+		// fractureChildren returns array of children asteroids or false
+		var children = collision.fractureChildren();
+		if (children) {
+			for (var i = 0; i < children.length; i++)
+				this.actors.push(children[i]);	
+		}
 		this.removeActor(collision);
 	}
 	if (collision == "wall")
@@ -307,7 +314,7 @@ function Asteroid(pos, size, spin, velocity) {
 	this.pos = pos;
 	this.size = size;
 	this.hitRadius = (this.size.x / 2 + this.size.y / 2) / 2; // average
-	this.spin = spin;
+	this.spin = spin || 0;
 	this.velocity = velocity;
 	this.orient = 0;
 }
@@ -316,10 +323,75 @@ Asteroid.prototype.act = function(step) {
 	this.rotate(step); // applies spin to current orientation
 	this.updatePosition(step); // applies velocity to current position
 };
-Asteroid.prototype.fracture = function() {
-	if (this.size > 2) {
-		return //an array with 2-3 spawned child asteroids
-	} else 
+Asteroid.prototype.fractureChildren = function() {
+	var childAsteroids = [];
+	
+	/*
+	Asteroids fracture in this pattern (whole square is parent asteroid):
+	
+	 ------------------
+	|         |        |
+	|    B    |   C    |
+	|         |        |
+	|------------------|
+	|                  |
+	|         A        |
+	|                  |
+	 ------------------
+	
+	A = childA
+	B = childB
+	C = childC
+	
+	*/
+	
+	if (Math.min(this.size.x, this.size.y) > 15) {
+		
+		var aPos = new Vector(this.pos.x, this.pos.y - this.size.y/4)
+		var aSize = new Vector(this.size.x, this.size.y/2);
+		
+		var bPos = new Vector(this.pos.x - this.size.x/4,
+			this.pos.y + this.size.y/4);
+		var bSize = new Vector(this.size.x/2, this.size.y/2);
+		
+		var cPos = new Vector(this.pos.x + this.size.x/4,
+			this.pos.y + this.size.y/4);
+		var cSize = new Vector(this.size.x/2, this.size.y/2);
+		
+		var childA = new Asteroid(aPos, aSize);
+		var childB = new Asteroid(bPos, bSize);
+		var childC = new Asteroid(cPos, cSize);
+		
+		childA.orient = this.orient;
+		childB.orient = this.orient;
+		childC.orient = this.orient;
+
+		// childA will escape towards -0.5*PI off parent orient
+		// childB will escape towards 0.75*PI off parent orient
+		// childC will escape towards 0.25*PI off parent orient
+		
+		// velocity magnitude children will escape at
+		var escapeMag = 5;
+		
+		childA.velocity = this.velocity.plus(new Vector(
+			Math.cos(childA.orient - 0.5*Math.PI) * escapeMag,
+			Math.sin(childA.orient - 0.5*Math.PI) * escapeMag)
+		);
+		childB.velocity = this.velocity.plus(new Vector(
+			Math.cos(childB.orient + 0.75*Math.PI) * escapeMag,
+			Math.sin(childB.orient + 0.75*Math.PI) * escapeMag)
+		);
+		childC.velocity = this.velocity.plus(new Vector(
+			Math.cos(childC.orient + 0.25*Math.PI) * escapeMag,
+			Math.sin(childC.orient + 0.25*Math.PI) * escapeMag)
+		);
+		
+		childAsteroids.push(childA);
+		childAsteroids.push(childB);
+		childAsteroids.push(childC);
+		
+		return childAsteroids;
+	} else
 		// if an asteroid is under a certain size, it won't split smaller
 		return false;
 };
@@ -337,7 +409,7 @@ function Player(pos) {
 	this.hitRadius = Math.max(this.size.x, this.size.y) / 2;
 	this.turnSpeed = (180 / 180) * Math.PI; //turnSpeed in degrees
 	this.velocity = new Vector(0, 0); // direction ship is drifting in
-	this.accel = 100; // max velocity magnitude 
+	this.accel = gameOptions.playerAccel || 100; 
 	this.orient = 0; //in radians; begin pointing north
 	this.gunsReady = 100; //less than 100 means guns aren't ready
 }
@@ -432,22 +504,20 @@ function trackKeys(codes) {
 	}
 	addEventListener("keydown", handler);
 	addEventListener("keyup", handler);
-	
-	/*//special spacebar listener
-	addEventListener("keypress", function(event) {
-		var down = event.keyValue == 32; //spacebar
-		console.log('found me');
-		pressed.space = down;
-		event.preventDefault();
-	});
-	*/
+
 	return pressed;
 }
+
+var gameOptions = Object.create(null);
+gameOptions = {
+	'showHitRadius': false,
+	'playerAccel': 20
+};
 
 var arrows = trackKeys(arrowCodes);
 
 function runLevel(level, Display) {
-	var display = new Display(document.body, level);
+	var display = new Display(document.body, level, gameOptions);
 	runAnimation(function(step) {
 		level.animate(step, arrows);
 		display.drawFrame(step);

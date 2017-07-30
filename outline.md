@@ -25,6 +25,7 @@
 #### Methods
 * plus
 * times
+### gameOptions (object with various properties, most having boolean values)
 
 ### runLevel (function itself)
 * takes level object and Display constructor
