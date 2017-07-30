@@ -11,11 +11,12 @@
 * animate  
   * runs if actions this.status != null
   * runs actor.act on all actors
-  * runs level.checkClip on all actors and does different things depending on what checkClip returns ("wall", player.type, etc)
+  * runs level.checkClip on all actors stores 
 * transport (takes actor, new Vector): changes actor.pos to second arg Vector
 * checkClip (takes actor) returns actor.type (or "wall") if actor.hitRadius is touching anything   
 * spawnAsteroid: creates new Asteroid with random attributes and adds it to the level.actors array
-
+* removeActor(actor) if actor is in this.actors array, remove actor from array and return true else return false
+* resolveCollition(actor, collision) does stuff to actor based on the collision object
 
 ## Helper stuff
 ### Vector
@@ -51,17 +52,20 @@
 * position (vector) (this is in reference to global origin)
 * velocity (vector) 
 * orient(ation) (in radians) (this is reference to global origin)
+* gunsReady (at 100 they are ready to fire, firing sets gunsReady to 0 and 
 ###### Constants
 * size (vector)
-* hitRadius (collision detection "box", but as a circle)
-* turnSpeed (max speed player can turn 
+* hitRadius (collision detection "box", but as a circle); radius is avg between actor.size.x/2 and actor.size.y/2
+* turnSpeed (max speed player can turn)
 * accel (the value which is used to determine at which Player.speed can increase)
 #### Methods
+* act
+* shoot: triggers when spacebar event is detected. adds Missile to level.actors
 * turn
 * jet (affects change in velocity)
 * updatePosition (takes new velocity and applies it to position)
 #### Properties
-* type ("player")
+* type = "player"
 
 ### Asteroid
 #### Vars
