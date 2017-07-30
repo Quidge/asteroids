@@ -264,6 +264,12 @@ Level.prototype.resolveCollision = function(actor, collision) {
 	}
 	if (actor.type == "missile" && collision.type == "asteroid") {
 		this.removeActor(actor);
+		// fractureChildren returns array of children asteroids or false
+		var children = collision.fractureChildren();
+		if (children) {
+			for (var i = 0; i < children.length; i++)
+				this.actors.push(children[i]);	
+		}
 		this.removeActor(collision);
 	}
 	if (collision == "wall")
@@ -338,28 +344,25 @@ Asteroid.prototype.fractureChildren = function() {
 	
 	*/
 	
-	if (Math.min(this.size.x, this size.y) > 50) {
+	if (Math.min(this.size.x, this.size.y) > 15) {
 		
 		var childA;
-		var childASize = this.size.x, this.size.y/2;
+		var childASize = new Vector(this.size.x, this.size.y/2);
 		var childAPos = new Vector(this.pos.x, this.pos.y - this.size.y/4);
-		var childAVelocity = this.velocity;
 		childA = new Asteroid(childAPos, childASize, 0, this.velocity);
 		childA.orient = this.orient;
 		
 		var childB;
-		var childBSize = this.size.x/2, this.size.y/2;
+		var childBSize = new Vector(this.size.x/2, this.size.y/2);
 		var childBPos = new Vector(this.pos.x - this.size.x/4,
 									this.pos.y + this.size.y/4);
-		var childBVelocity = this.velocity;
 		childB = new Asteroid(childBPos, childBSize, 0, this.velocity);
 		childB.orient = this.orient;
 
 		var childC;
-		var childCSize = this.size.x/2, this.size.y/2;
+		var childCSize = new Vector(this.size.x/2, this.size.y/2);
 		var childCPos = new Vector(this.pos.x + this.size.x/4,
 									this.pos.y + this.size.y/4);
-		var childCVelocity = this.velocity;
 		childC = new Asteroid(childCPos, childCSize, 0, this.velocity);
 		childC.orient = this.orient;
 
@@ -368,7 +371,7 @@ Asteroid.prototype.fractureChildren = function() {
 		childAsteroids.push(childC);
 		
 		return childAsteroids;
-	} else 
+	} else
 		// if an asteroid is under a certain size, it won't split smaller
 		return false;
 };
