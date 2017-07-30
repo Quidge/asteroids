@@ -313,7 +313,7 @@ function Asteroid(pos, size, spin, velocity) {
 	this.pos = pos;
 	this.size = size;
 	this.hitRadius = (this.size.x / 2 + this.size.y / 2) / 2; // average
-	this.spin = spin;
+	this.spin = spin || 0;
 	this.velocity = velocity;
 	this.orient = 0;
 }
@@ -326,7 +326,7 @@ Asteroid.prototype.fractureChildren = function() {
 	var childAsteroids = [];
 	
 	/*
-	split looks like this (whole square is parent asteroid):
+	Asteroids fracture in this pattern (whole square is parent asteroid):
 	
 	 ------------------
 	|         |        |
@@ -346,26 +346,45 @@ Asteroid.prototype.fractureChildren = function() {
 	
 	if (Math.min(this.size.x, this.size.y) > 15) {
 		
-		var childA;
-		var childASize = new Vector(this.size.x, this.size.y/2);
-		var childAPos = new Vector(this.pos.x, this.pos.y - this.size.y/4);
-		childA = new Asteroid(childAPos, childASize, 0, this.velocity);
-		childA.orient = this.orient;
+		var aPos = new Vector(this.pos.x, this.pos.y - this.size.y/4)
+		var aSize = new Vector(this.size.x, this.size.y/2);
 		
-		var childB;
-		var childBSize = new Vector(this.size.x/2, this.size.y/2);
-		var childBPos = new Vector(this.pos.x - this.size.x/4,
-									this.pos.y + this.size.y/4);
-		childB = new Asteroid(childBPos, childBSize, 0, this.velocity);
+		var bPos = new Vector(this.pos.x - this.size.x/4,
+			this.pos.y + this.size.y/4);
+		var bSize = new Vector(this.size.x/2, this.size.y/2);
+		
+		var cPos = new Vector(this.pos.x + this.size.x/4,
+			this.pos.y + this.size.y/4);
+		var cSize = new Vector(this.size.x/2, this.size.y/2);
+		
+		var childA = new Asteroid(aPos, aSize);
+		var childB = new Asteroid(bPos, bSize);
+		var childC = new Asteroid(cPos, cSize);
+		
+		childA.orient = this.orient;
 		childB.orient = this.orient;
-
-		var childC;
-		var childCSize = new Vector(this.size.x/2, this.size.y/2);
-		var childCPos = new Vector(this.pos.x + this.size.x/4,
-									this.pos.y + this.size.y/4);
-		childC = new Asteroid(childCPos, childCSize, 0, this.velocity);
 		childC.orient = this.orient;
 
+		// childA will escape towards -0.5*PI off parent orient
+		// childB will escape towards 0.75*PI off parent orient
+		// childC will escape towards 0.25*PI off parent orient
+		
+		// velocity magnitude children will escape at
+		var escapeMag = 5;
+		
+		childA.velocity = this.velocity.plus(new Vector(
+			Math.cos(childA.orient - 0.5*Math.PI) * escapeMag,
+			Math.sin(childA.orient - 0.5*Math.PI) * escapeMag)
+		);
+		childB.velocity = this.velocity.plus(new Vector(
+			Math.cos(childB.orient + 0.75*Math.PI) * escapeMag,
+			Math.sin(childB.orient + 0.75*Math.PI) * escapeMag)
+		);
+		childC.velocity = this.velocity.plus(new Vector(
+			Math.cos(childC.orient + 0.25*Math.PI) * escapeMag,
+			Math.sin(childC.orient + 0.25*Math.PI) * escapeMag)
+		);
+		
 		childAsteroids.push(childA);
 		childAsteroids.push(childB);
 		childAsteroids.push(childC);
