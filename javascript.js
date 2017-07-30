@@ -45,11 +45,12 @@ CanvasDisplay.prototype.drawActors = function() {
 		var aY = this.level.origin.y + actor.pos.y;
 		
 		// draw actor hitRadius (this is only for development)
-
-		this.cx.beginPath();
-		this.cx.arc(aX, aY, actor.hitRadius, 0, 7);
-		this.cx.closePath();
-		this.cx.stroke();
+		if (gameOptions.showHitRadius) {
+			this.cx.beginPath();
+			this.cx.arc(aX, aY, actor.hitRadius, 0, 7);
+			this.cx.closePath();
+			this.cx.stroke();
+		}
 		
 		if (actor.type == "missile") {
 			this.cx.beginPath();
@@ -408,7 +409,7 @@ function Player(pos) {
 	this.hitRadius = Math.max(this.size.x, this.size.y) / 2;
 	this.turnSpeed = (180 / 180) * Math.PI; //turnSpeed in degrees
 	this.velocity = new Vector(0, 0); // direction ship is drifting in
-	this.accel = 100; // max velocity magnitude 
+	this.accel = gameOptions.playerAccel || 100; 
 	this.orient = 0; //in radians; begin pointing north
 	this.gunsReady = 100; //less than 100 means guns aren't ready
 }
@@ -503,22 +504,20 @@ function trackKeys(codes) {
 	}
 	addEventListener("keydown", handler);
 	addEventListener("keyup", handler);
-	
-	/*//special spacebar listener
-	addEventListener("keypress", function(event) {
-		var down = event.keyValue == 32; //spacebar
-		console.log('found me');
-		pressed.space = down;
-		event.preventDefault();
-	});
-	*/
+
 	return pressed;
 }
+
+var gameOptions = Object.create(null);
+gameOptions = {
+	'showHitRadius': false,
+	'playerAccel': 20
+};
 
 var arrows = trackKeys(arrowCodes);
 
 function runLevel(level, Display) {
-	var display = new Display(document.body, level);
+	var display = new Display(document.body, level, gameOptions);
 	runAnimation(function(step) {
 		level.animate(step, arrows);
 		display.drawFrame(step);
