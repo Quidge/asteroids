@@ -316,9 +316,58 @@ Asteroid.prototype.act = function(step) {
 	this.rotate(step); // applies spin to current orientation
 	this.updatePosition(step); // applies velocity to current position
 };
-Asteroid.prototype.fracture = function() {
-	if (this.size > 2) {
-		return //an array with 2-3 spawned child asteroids
+Asteroid.prototype.fractureChildren = function() {
+	var childAsteroids = [];
+	
+	/*
+	split looks like this (whole square is parent asteroid):
+	
+	 ------------------
+	|         |        |
+	|    B    |   C    |
+	|         |        |
+	|------------------|
+	|                  |
+	|         A        |
+	|                  |
+	 ------------------
+	
+	A = childA
+	B = childB
+	C = childC
+	
+	*/
+	
+	if (Math.min(this.size.x, this size.y) > 50) {
+		
+		var childA;
+		var childASize = this.size.x, this.size.y/2;
+		var childAPos = new Vector(this.pos.x, this.pos.y - this.size.y/4);
+		var childAVelocity = this.velocity;
+		childA = new Asteroid(childAPos, childASize, 0, this.velocity);
+		childA.orient = this.orient;
+		
+		var childB;
+		var childBSize = this.size.x/2, this.size.y/2;
+		var childBPos = new Vector(this.pos.x - this.size.x/4,
+									this.pos.y + this.size.y/4);
+		var childBVelocity = this.velocity;
+		childB = new Asteroid(childBPos, childBSize, 0, this.velocity);
+		childB.orient = this.orient;
+
+		var childC;
+		var childCSize = this.size.x/2, this.size.y/2;
+		var childCPos = new Vector(this.pos.x + this.size.x/4,
+									this.pos.y + this.size.y/4);
+		var childCVelocity = this.velocity;
+		childC = new Asteroid(childCPos, childCSize, 0, this.velocity);
+		childC.orient = this.orient;
+
+		childAsteroids.push(childA);
+		childAsteroids.push(childB);
+		childAsteroids.push(childC);
+		
+		return childAsteroids;
 	} else 
 		// if an asteroid is under a certain size, it won't split smaller
 		return false;
