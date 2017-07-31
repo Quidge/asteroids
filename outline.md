@@ -11,12 +11,13 @@
 * animate  
   * runs if actions this.status != null
   * runs actor.act on all actors
-  * runs level.checkClip on all actors stores 
+  * runs level.checkClip on all actors stores (adds to playerPoints if missile collides with asteroid)
 * transport (takes actor, new Vector): changes actor.pos to second arg Vector
 * checkClip (takes actor) returns actor.type (or "wall") if actor.hitRadius is touching anything   
 * spawnAsteroid: creates new Asteroid with random attributes and adds it to the level.actors array
 * removeActor(actor) if actor is in this.actors array, remove actor from array and return true else return false
 * resolveCollition(actor, collision) does stuff to actor based on the collision object
+* calcPointVal(actor) returns a rounded number that is based on the size of the actor
 
 ## Helper stuff
 ### Vector
@@ -54,6 +55,7 @@
 * velocity (vector) 
 * orient(ation) (in radians) (this is reference to global origin)
 * gunsReady (at 100 they are ready to fire, firing sets gunsReady to 0 and 
+* playerPoints
 ###### Constants
 * size (vector)
 * hitRadius (collision detection "box", but as a circle); radius is avg between actor.size.x/2 and actor.size.y/2

@@ -29,6 +29,7 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 	if (this.level.status != 0 || this.isPaused)
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
+	this.drawPoints();
 };
 CanvasDisplay.prototype.clearDisplay = function() {
 	this.cx.clearRect(0, 0, 
@@ -37,6 +38,15 @@ CanvasDisplay.prototype.clearDisplay = function() {
 CanvasDisplay.prototype.drawBackground = function() {
 	this.cx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
 };
+CanvasDisplay.prototype.drawPoints = function() {
+	this.cx.fillStyle = "red";
+	this.cx.textAlign = "right";
+	this.cx.textBaseline = "top";
+	this.cx.font = "small-caps 700 48px sans-serif";
+	
+	this.cx.fillText(this.level.playerPoints, 
+		this.canvas.width - 15, 0);
+}
 CanvasDisplay.prototype.drawActors = function() {
 	for (var i = 0; i < this.level.actors.length; i++) {
 		
@@ -155,7 +165,8 @@ function Level() {
 	// game state default origin is in center of length and width
 	this.origin = new Vector(this.length/2, this.height/2);
 	// each actor present in actor is expected to have a position and size
-	this.actors = [];	
+	this.actors = [];
+	this.playerPoints = 0;
 	this.status = 0; // -1 is lost, 0 is running, 1 is won
 }
 
@@ -222,6 +233,9 @@ Level.prototype.checkClip = function(actor) {
 Level.prototype.transport = function(actor, newPos) {
 	actor.pos = newPos;
 };
+Level.prototype.calcPointVal = function(actor) {
+	return Math.floor(Math.max(actor.size.x, actor.size.y) * 10);
+};
 Level.prototype.removeActor = function(actor) {
 	var index = this.actors.indexOf(actor);
 	if (index > -1) {
@@ -275,6 +289,7 @@ Level.prototype.resolveCollision = function(actor, collision) {
 			for (var i = 0; i < children.length; i++)
 				this.actors.push(children[i]);	
 		}
+		this.playerPoints += this.calcPointVal(collision);
 		this.removeActor(collision);
 	}
 	if (collision == "wall")
