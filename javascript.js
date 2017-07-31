@@ -155,7 +155,8 @@ function Level() {
 	// game state default origin is in center of length and width
 	this.origin = new Vector(this.length/2, this.height/2);
 	// each actor present in actor is expected to have a position and size
-	this.actors = [];	
+	this.actors = [];
+	this.playerPoints = 0;
 	this.status = 0; // -1 is lost, 0 is running, 1 is won
 }
 
@@ -222,6 +223,9 @@ Level.prototype.checkClip = function(actor) {
 Level.prototype.transport = function(actor, newPos) {
 	actor.pos = newPos;
 };
+Level.prototype.calcPointVal = function(actor) {
+	return Math.floor(Math.max(actor.size.x, actor.size.y) * 10);
+};
 Level.prototype.removeActor = function(actor) {
 	var index = this.actors.indexOf(actor);
 	if (index > -1) {
@@ -275,6 +279,7 @@ Level.prototype.resolveCollision = function(actor, collision) {
 			for (var i = 0; i < children.length; i++)
 				this.actors.push(children[i]);	
 		}
+		this.playerPoints += this.calcPointVal(collision);
 		this.removeActor(collision);
 	}
 	if (collision == "wall")
