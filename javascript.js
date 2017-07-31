@@ -29,6 +29,7 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 	if (this.level.status != 0 || this.isPaused)
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
+	this.drawPoints();
 };
 CanvasDisplay.prototype.clearDisplay = function() {
 	this.cx.clearRect(0, 0, 
@@ -37,6 +38,15 @@ CanvasDisplay.prototype.clearDisplay = function() {
 CanvasDisplay.prototype.drawBackground = function() {
 	this.cx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
 };
+CanvasDisplay.prototype.drawPoints = function() {
+	this.cx.fillStyle = "red";
+	this.cx.textAlign = "right";
+	this.cx.textBaseline = "top";
+	this.cx.font = "small-caps 700 48px sans-serif";
+	
+	this.cx.fillText(this.level.playerPoints, 
+		this.canvas.width - 15, 0);
+}
 CanvasDisplay.prototype.drawActors = function() {
 	for (var i = 0; i < this.level.actors.length; i++) {
 		
