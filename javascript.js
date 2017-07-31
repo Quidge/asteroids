@@ -9,6 +9,7 @@ function CanvasDisplay(parent, level) {
 	
 	this.animationTime = 0;
 	
+	this.isPaused = false;
 	this.level = level;
 	
 } 
@@ -25,7 +26,7 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 	this.drawBackground();
 	// both ship and asteroids are actors
 	this.drawActors(); 
-	if (this.level.status != 0)
+	if (this.level.status != 0 || this.isPaused)
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
 };
@@ -142,6 +143,9 @@ CanvasDisplay.prototype.drawResolution = function() {
 	} else if (this.level.status == 1) {
 		this.cx.fillText("you won fool, props.",
 						this.canvas.width/2, this.canvas.height/2);
+	} else if (this.isPaused) {
+		this.cx.fillText("we're paused homie",
+			this.canvas.width/2, this.canvas.height/2);
 	}
 }
 
@@ -234,7 +238,7 @@ var maxStep = 0.05;
 // step will be time since last animation frame
 Level.prototype.animate = function(step, keys) {
 	
-	while (step > 0 && !this.isPaused) {
+	while (step > 0) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			// first run through actor's act method (usually just updates 
@@ -537,6 +541,7 @@ function runLevel(level, Display) {
 		if (event.keyCode == 27) { // keyCode 27 is escape key
 			if (running == "no") {
 				running = "yes";
+				display.isPaused = false;
 				runAnimation(animation)
 			} else if (running == "yes") {
 				running = "pausing";
@@ -550,6 +555,8 @@ function runLevel(level, Display) {
 	function animation(step) {
 		if (running == "pausing") {
 			running = "no";
+			display.isPaused = true;
+			display.drawFrame();
 			return false;
 		}
 		
