@@ -29,7 +29,7 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 	if (this.level.status != 0 || this.isPaused)
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
-	this.drawPoints();
+	this.drawPoints(); // draws playerPoints to top right
 };
 CanvasDisplay.prototype.clearDisplay = function() {
 	this.cx.clearRect(0, 0, 
