@@ -9,6 +9,7 @@ function CanvasDisplay(parent, level) {
 	
 	this.animationTime = 0;
 	
+	this.isPaused = false;
 	this.level = level;
 	
 } 
@@ -25,7 +26,7 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 	this.drawBackground();
 	// both ship and asteroids are actors
 	this.drawActors(); 
-	if (this.level.status != 0)
+	if (this.level.status != 0 || this.isPaused)
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
 };
@@ -142,6 +143,9 @@ CanvasDisplay.prototype.drawResolution = function() {
 	} else if (this.level.status == 1) {
 		this.cx.fillText("you won fool, props.",
 						this.canvas.width/2, this.canvas.height/2);
+	} else if (this.isPaused) {
+		this.cx.fillText("we're paused homie",
+			this.canvas.width/2, this.canvas.height/2);
 	}
 }
 
@@ -516,15 +520,53 @@ gameOptions = {
 
 var arrows = trackKeys(arrowCodes);
 
+/* Okay, so this part is hard because it's fairly abstracted and uses recursion.
+
+- The escape key alters var running to yes/pausing/no.
+- Animation takes an amount of time (called step), and has Level and Display
+	do their thing with that amount of time.
+	- 	In some cases (game is paused, level status != 0), animation can return
+		false.
+- runAnimation is a wrapper for requestAnimation. It takes a function that
+	expects an amount of time (...like animation). At the end of runAnimation, 
+	it runs itself again. This is the recursion. It will run itself over and 
+	over unless the argument function returns false.
+	
+*/
+
 function runLevel(level, Display) {
 	var display = new Display(document.body, level, gameOptions);
-	runAnimation(function(step) {
+	var running = "yes";
+	function handleKey(event) {
+		if (event.keyCode == 27) { // keyCode 27 is escape key
+			if (running == "no") {
+				running = "yes";
+				display.isPaused = false;
+				runAnimation(animation)
+			} else if (running == "yes") {
+				running = "pausing";
+			} else if (running == "pausing") {
+				running = "yes";
+			}
+		}
+	}
+	addEventListener("keydown", handleKey);
+	
+	function animation(step) {
+		if (running == "pausing") {
+			running = "no";
+			display.isPaused = true;
+			display.drawFrame();
+			return false;
+		}
+		
 		level.animate(step, arrows);
 		display.drawFrame(step);
 		if (level.status !== 0) {
 			return false;
-		};
-	});
+		}
+	}
+	runAnimation(animation);
 }
 
 function runGame(Display) {
