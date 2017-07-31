@@ -234,7 +234,7 @@ var maxStep = 0.05;
 // step will be time since last animation frame
 Level.prototype.animate = function(step, keys) {
 	
-	while (step > 0) {
+	while (step > 0 && !this.isPaused) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
 			// first run through actor's act method (usually just updates 
@@ -518,13 +518,42 @@ var arrows = trackKeys(arrowCodes);
 
 function runLevel(level, Display) {
 	var display = new Display(document.body, level, gameOptions);
+	var running = "yes";
+	function handleKey(event) {
+		if (event.keyCode == 27) {
+			if (running == "no") {
+				running = "yes";
+				runAnimation(animation)
+			} else if (running == "yes") {
+				running = "pausing";
+			} else if (running == "pausing") {
+				running = "yes";
+			}
+		}
+	}
+	addEventListener("keydown", handleKey);
+	
+	function animation(step) {
+		if (running == "pausing") {
+			running = "no";
+			return false;
+		}
+		
+		level.animate(step, arrows);
+		display.drawFrame(step);
+		if (level.status !== 0) {
+			return false;
+		}
+	}
+	runAnimation(animation);
+	/*
 	runAnimation(function(step) {
 		level.animate(step, arrows);
 		display.drawFrame(step);
 		if (level.status !== 0) {
 			return false;
 		};
-	});
+	});*/
 }
 
 function runGame(Display) {
