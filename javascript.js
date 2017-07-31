@@ -516,11 +516,25 @@ gameOptions = {
 
 var arrows = trackKeys(arrowCodes);
 
+/* Okay, so this part is hard because it's fairly abstracted and uses recursion.
+
+- The escape key alters var running to yes/pausing/no.
+- Animation takes an amount of time (called step), and has Level and Display
+	do their thing with that amount of time.
+	- 	In some cases (game is paused, level status != 0), animation can return
+		false.
+- runAnimation is a wrapper for requestAnimation. It takes a function that
+	expects an amount of time (...like animation). At the end of runAnimation, 
+	it runs itself again. This is the recursion. It will run itself over and 
+	over unless the argument function returns false.
+	
+*/
+
 function runLevel(level, Display) {
 	var display = new Display(document.body, level, gameOptions);
 	var running = "yes";
 	function handleKey(event) {
-		if (event.keyCode == 27) {
+		if (event.keyCode == 27) { // keyCode 27 is escape key
 			if (running == "no") {
 				running = "yes";
 				runAnimation(animation)
@@ -546,14 +560,6 @@ function runLevel(level, Display) {
 		}
 	}
 	runAnimation(animation);
-	/*
-	runAnimation(function(step) {
-		level.animate(step, arrows);
-		display.drawFrame(step);
-		if (level.status !== 0) {
-			return false;
-		};
-	});*/
 }
 
 function runGame(Display) {
