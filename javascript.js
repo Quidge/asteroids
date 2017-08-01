@@ -263,8 +263,9 @@ Level.prototype.animate = function(step, keys) {
 				this.removeActor(actor);
 				return;
 			}
-			// checkClip returns either false, "wall", or the actual object
-			// of whatever actor collided with
+			// resolve collisions with check clip
+				// checkClip returns either false, "wall", or the actual object
+				// of whatever actor collided with
 			this.resolveCollision(actor, this.checkClip(actor));
 		}, this);
 		this.elapsedGameTime += thisStep;
@@ -290,8 +291,10 @@ Level.prototype.resolveCollision = function(actor, collision) {
 		this.playerPoints += this.calcPointVal(collision);
 		this.removeActor(collision);
 	}
-	if (collision == "wall")
-		this.transport(actor, actor.pos.times(-1));
+	// 298 thing sorta takes care of clipping issue, doesn't get rid of it
+	if (collision == "wall" 
+		&& (Math.abs(actor.pos.x) > 298 || Math.abs(actor.pos.y) > 298))
+			this.transport(actor, actor.pos.times(-1));
 };
 Level.prototype.spawnAsteroid = function(pos, size, spin, velocity) {
 	
@@ -419,6 +422,15 @@ Asteroid.prototype.updatePosition = function(step) {
 Asteroid.prototype.rotate = function(step) {
 	this.orient = this.orient + this.spin * step;
 };
+/*Asteroid.prototype.wallBump = function(axis) {
+	if (axis != 'x')
+		throw new Error("Was expecting 'x' or 'y' string, but received: " + axis);
+	console.log(this.pos.x, this.pos.y, 'going to increment ' + axis);
+	console.log(this.pos[axis]);
+	this.pos[axis] > 0 ? this.pos[axis] -= 1 : this.pos[axis] += 1;
+	console.log(this.pos[axis]);
+	return this.pos;
+}*/
 
 function Player(pos) {
 	this.pos = pos;
