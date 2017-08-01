@@ -263,8 +263,6 @@ Level.prototype.animate = function(step, keys) {
 				this.removeActor(actor);
 				return;
 			}
-			// output is "wall", false, other actor object
-			var collision = this.checkClip(actor);
 			// checkClip returns either false, "wall", or the actual object
 			// of whatever actor collided with
 			this.resolveCollision(actor, this.checkClip(actor));
