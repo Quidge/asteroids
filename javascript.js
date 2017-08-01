@@ -168,8 +168,23 @@ function Level() {
 	this.actors = [];
 	this.playerPoints = 0;
 	this.status = 0; // -1 is lost, 0 is running, 1 is won
+	this.elapsedGameTime = 0;
+	this.stage = gameOptions.stage || 1;
 }
 
+Level.prototype.incrementStage = function() {
+	var advance;
+	if (gameOptions.difficulty == "easy")
+		advance = 1;
+	else if (gameOptions.difficulty == "medium")
+		advance = 3;
+	else if (gameOptions.difficulty == "hard")
+		advance = 5;
+	else
+		advance = 1;
+	
+	this.stage += advance;
+}
 Level.prototype.checkClip = function(actor) {
 	
 	var clipType = false;
@@ -246,6 +261,15 @@ Level.prototype.removeActor = function(actor) {
 		return false;
 	}
 };
+Level.prototype.checkForEnemies = function(actorArray) {
+	function test(element) {
+		if (element.type == "asteroid")
+			return true;
+		else 
+			return false;
+	}
+	return actorArray.some(test);
+}
 
 var maxStep = 0.05;
 
@@ -270,9 +294,13 @@ Level.prototype.animate = function(step, keys) {
 			this.resolveCollision(actor, this.checkClip(actor));
 		}, this);
 		this.elapsedGameTime += thisStep;
+		// levelUp
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
 	}
+	if (!this.checkForEnemies(this.actors))
+		this.status = 1;
+
 };
 Level.prototype.resolveCollision = function(actor, collision) {
 	if (!collision)
@@ -327,7 +355,10 @@ Level.prototype.spawnAsteroid = function(pos, size, spin, velocity) {
 	}
 	this.actors.push(asteroid);
 };
-
+Level.prototype.enemyTimer = function(elapsedTime) {
+	var difficulty = gameOptions.difficulty || 'easy';
+	
+};
 // Begin different actor types
 function Asteroid(pos, size, spin, velocity) {
 	this.pos = pos;
@@ -584,13 +615,15 @@ function runLevel(level, Display) {
 	runAnimation(animation);
 }
 
+// Asteroid constructor: Asteroid(pos, size, spin, velocity)
+
 function runGame(Display) {
 	var level = new Level();
 	var player = new Player(new Vector(0,0));
 	level.actors.push(player);
-	level.spawnAsteroid();
-	level.spawnAsteroid();
-	level.spawnAsteroid();
+	//level.spawnAsteroid();
+	//level.spawnAsteroid();
+	//level.spawnAsteroid();
 	level.spawnAsteroid();
 	
 	runLevel(level, Display);
