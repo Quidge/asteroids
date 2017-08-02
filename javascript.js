@@ -263,10 +263,9 @@ Level.prototype.animate = function(step, keys) {
 				this.removeActor(actor);
 				return;
 			}
-			// output is "wall", false, other actor object
-			var collision = this.checkClip(actor);
-			// checkClip returns either false, "wall", or the actual object
-			// of whatever actor collided with
+			// resolve collisions with check clip
+				// checkClip returns either false, "wall", or the actual object
+				// of whatever actor collided with
 			this.resolveCollision(actor, this.checkClip(actor));
 		}, this);
 		this.elapsedGameTime += thisStep;
@@ -278,7 +277,6 @@ Level.prototype.resolveCollision = function(actor, collision) {
 	if (!collision)
 		return false;
 	if (actor.type == "player" && collision.type == "asteroid") {
-		console.log('hit!');
 		this.status = -1; //-1 means lost; default (running) is 0
 	}
 	if (actor.type == "missile" && collision.type == "asteroid") {
@@ -292,8 +290,22 @@ Level.prototype.resolveCollision = function(actor, collision) {
 		this.playerPoints += this.calcPointVal(collision);
 		this.removeActor(collision);
 	}
-	if (collision == "wall")
-		this.transport(actor, actor.pos.times(-1));
+	// if wall is tripped, capture how much the actor has gone past the wall
+	// (that is overStep)
+	// switch tripped axis coord and add back overstep * a slight bump
+	if (collision == "wall") {
+		if (Math.abs(actor.pos.x) > this.length/2) {
+			var overStep = actor.pos.x % (this.length/2);
+			actor.pos.x *= - 1;
+			actor.pos.x = actor.pos.x + overStep * 1.5;
+		}
+		if (Math.abs(actor.pos.y) > this.height/2) {
+			var overStep = actor.pos.y % (this.height/2);
+			actor.pos.y *= -1;
+			actor.pos.y = actor.pos.y + overStep * 1.5;
+		}
+	}
+	
 };
 Level.prototype.spawnAsteroid = function(pos, size, spin, velocity) {
 	
@@ -421,6 +433,15 @@ Asteroid.prototype.updatePosition = function(step) {
 Asteroid.prototype.rotate = function(step) {
 	this.orient = this.orient + this.spin * step;
 };
+/*Asteroid.prototype.wallBump = function(axis) {
+	if (axis != 'x')
+		throw new Error("Was expecting 'x' or 'y' string, but received: " + axis);
+	console.log(this.pos.x, this.pos.y, 'going to increment ' + axis);
+	console.log(this.pos[axis]);
+	this.pos[axis] > 0 ? this.pos[axis] -= 1 : this.pos[axis] += 1;
+	console.log(this.pos[axis]);
+	return this.pos;
+}*/
 
 function Player(pos) {
 	this.pos = pos;
@@ -589,9 +610,9 @@ function runGame(Display) {
 	var player = new Player(new Vector(0,0));
 	level.actors.push(player);
 	level.spawnAsteroid();
-	level.spawnAsteroid();
-	level.spawnAsteroid();
-	level.spawnAsteroid();
+	//level.spawnAsteroid();
+	//level.spawnAsteroid();
+	//level.spawnAsteroid();
 	
 	runLevel(level, Display);
 }
