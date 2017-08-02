@@ -277,7 +277,6 @@ Level.prototype.resolveCollision = function(actor, collision) {
 	if (!collision)
 		return false;
 	if (actor.type == "player" && collision.type == "asteroid") {
-		console.log('hit!');
 		this.status = -1; //-1 means lost; default (running) is 0
 	}
 	if (actor.type == "missile" && collision.type == "asteroid") {
@@ -291,10 +290,22 @@ Level.prototype.resolveCollision = function(actor, collision) {
 		this.playerPoints += this.calcPointVal(collision);
 		this.removeActor(collision);
 	}
-	// 298 thing sorta takes care of clipping issue, doesn't get rid of it
-	if (collision == "wall" 
-		&& (Math.abs(actor.pos.x) > 298 || Math.abs(actor.pos.y) > 298))
-			this.transport(actor, actor.pos.times(-1));
+	// if wall is tripped, capture how much the actor has gone past the wall
+	// (that is overStep)
+	// switch tripped axis coord and add back overstep * a slight bump
+	if (collision == "wall") {
+		if (Math.abs(actor.pos.x) > this.length/2) {
+			var overStep = actor.pos.x % (this.length/2);
+			actor.pos.x *= - 1;
+			actor.pos.x = actor.pos.x + overStep * 1.5;
+		}
+		if (Math.abs(actor.pos.y) > this.height/2) {
+			var overStep = actor.pos.y % (this.height/2);
+			actor.pos.y *= -1;
+			actor.pos.y = actor.pos.y + overStep * 1.5;
+		}
+	}
+	
 };
 Level.prototype.spawnAsteroid = function(pos, size, spin, velocity) {
 	
@@ -599,9 +610,9 @@ function runGame(Display) {
 	var player = new Player(new Vector(0,0));
 	level.actors.push(player);
 	level.spawnAsteroid();
-	level.spawnAsteroid();
-	level.spawnAsteroid();
-	level.spawnAsteroid();
+	//level.spawnAsteroid();
+	//level.spawnAsteroid();
+	//level.spawnAsteroid();
 	
 	runLevel(level, Display);
 }
