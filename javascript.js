@@ -464,15 +464,6 @@ Asteroid.prototype.updatePosition = function(step) {
 Asteroid.prototype.rotate = function(step) {
 	this.orient = this.orient + this.spin * step;
 };
-/*Asteroid.prototype.wallBump = function(axis) {
-	if (axis != 'x')
-		throw new Error("Was expecting 'x' or 'y' string, but received: " + axis);
-	console.log(this.pos.x, this.pos.y, 'going to increment ' + axis);
-	console.log(this.pos[axis]);
-	this.pos[axis] > 0 ? this.pos[axis] -= 1 : this.pos[axis] += 1;
-	console.log(this.pos[axis]);
-	return this.pos;
-}*/
 
 function Player(pos) {
 	this.pos = pos;
@@ -642,17 +633,10 @@ function runGame(Display) {
 	var level = new Level();
 	var player = new Player(new Vector(0,0));
 	level.actors.push(player);
-<<<<<<< HEAD
-	//level.spawnAsteroid();
-	//level.spawnAsteroid();
-	//level.spawnAsteroid();
-	level.spawnAsteroid();
-=======
 	level.spawnAsteroid();
 	//level.spawnAsteroid();
 	//level.spawnAsteroid();
 	//level.spawnAsteroid();
->>>>>>> develop
 	
 	runLevel(level, Display);
 }
