@@ -168,8 +168,23 @@ function Level() {
 	this.actors = [];
 	this.playerPoints = 0;
 	this.status = 0; // -1 is lost, 0 is running, 1 is won
+	this.elapsedGameTime = 0;
+	this.stage = gameOptions.stage || 1;
 }
 
+Level.prototype.incrementStage = function() {
+	var advance;
+	if (gameOptions.difficulty == "easy")
+		advance = 1;
+	else if (gameOptions.difficulty == "medium")
+		advance = 3;
+	else if (gameOptions.difficulty == "hard")
+		advance = 5;
+	else
+		advance = 1;
+	
+	this.stage += advance;
+}
 Level.prototype.checkClip = function(actor) {
 	
 	var clipType = false;
@@ -246,6 +261,15 @@ Level.prototype.removeActor = function(actor) {
 		return false;
 	}
 };
+Level.prototype.checkForEnemies = function(actorArray) {
+	function test(element) {
+		if (element.type == "asteroid")
+			return true;
+		else 
+			return false;
+	}
+	return actorArray.some(test);
+}
 
 var maxStep = 0.05;
 
@@ -269,9 +293,13 @@ Level.prototype.animate = function(step, keys) {
 			this.resolveCollision(actor, this.checkClip(actor));
 		}, this);
 		this.elapsedGameTime += thisStep;
+		// levelUp
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
 	}
+	if (!this.checkForEnemies(this.actors))
+		this.status = 1;
+
 };
 Level.prototype.resolveCollision = function(actor, collision) {
 	if (!collision)
@@ -281,8 +309,8 @@ Level.prototype.resolveCollision = function(actor, collision) {
 	}
 	if (actor.type == "missile" && collision.type == "asteroid") {
 		this.removeActor(actor);
-		// fractureChildren returns array of children asteroids or false
-		var children = collision.fractureChildren();
+		// getChildren returns array of children asteroids or false
+		var children = collision.getChildren();
 		if (children) {
 			for (var i = 0; i < children.length; i++)
 				this.actors.push(children[i]);	
@@ -305,47 +333,41 @@ Level.prototype.resolveCollision = function(actor, collision) {
 			actor.pos.y = actor.pos.y + overStep * 1.5;
 		}
 	}
-	
 };
-Level.prototype.spawnAsteroid = function(pos, size, spin, velocity) {
+Level.prototype.getRandomAsteroid = function() {
+	var properties = Object.create(null);
 	
-	if (pos && size && spin && velocity) { 
-		// only take parameters if all are present
-		var asteroid = new Asteroid(pos, size, spin, velocity);
-	} else {
-		var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+	var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
 		var rand2 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
-
-		// Sets start position to be at random location on some wall
-		// If in the extraordinarily unlikely scenario that rand1 == rand2, 
-		// start position is set at 300,300 (bottom right corner)
-		if (rand1 > rand2)
-			var pos = new Vector(300*rand1, 300);
-		else if (rand1 < rand2)
-			var pos = new Vector(300, 300*rand1);
-		else
-			var pos = new Vector(300, 300);
-		var spin = 5 * rand1;
-		var velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
-		// can't have negative sizes
-		// minimum size is 15x20
-		var size = new Vector(15 + Math.abs(200 * rand1), 
+	
+	if (rand1 > rand2)
+		properties.pos = new Vector(300*rand1, 300);
+	else
+		properties.pos = new Vector(300, 300*rand1);
+	
+	properties.spin = 5 * rand1;
+	properties.velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
+	properties.size = new Vector(15 + Math.abs(200 * rand1), 
 								20 + Math.abs(200 * rand2));
 	
-		//manually set size, don't mess with randoms
-		//var size = new Vector(50, 300);
-	
-		var asteroid = new Asteroid(pos, size, spin, velocity);
-	}
-	this.actors.push(asteroid);
+	return new Asteroid(properties);
+};
+Level.prototype.enemyTimer = function(elapsedTime) {
+	var difficulty = gameOptions.difficulty || 'easy';
 };
 
-// Begin different actor types
-function Asteroid(pos, size, spin, velocity) {
+function Asteroid(
+	// set defaults using destructuring
+	{	pos = new Vector(300, 300),
+		size = new Vector(35, 35),
+		spin = 5,
+		velocity = new Vector(35, 35)
+	} = {}) {
+	
 	this.pos = pos;
 	this.size = size;
 	this.hitRadius = (this.size.x / 2 + this.size.y / 2) / 2; // average
-	this.spin = spin || 0;
+	this.spin = spin;
 	this.velocity = velocity;
 	this.orient = 0;
 }
@@ -354,9 +376,8 @@ Asteroid.prototype.act = function(step) {
 	this.rotate(step); // applies spin to current orientation
 	this.updatePosition(step); // applies velocity to current position
 };
-Asteroid.prototype.fractureChildren = function() {
-	var childAsteroids = [];
-	
+Asteroid.prototype.getChildren = function() {
+
 	/*
 	Asteroids fracture in this pattern (whole square is parent asteroid):
 	
@@ -378,24 +399,27 @@ Asteroid.prototype.fractureChildren = function() {
 	
 	if (Math.min(this.size.x, this.size.y) > 15) {
 		
-		var aPos = new Vector(this.pos.x, this.pos.y - this.size.y/4)
-		var aSize = new Vector(this.size.x, this.size.y/2);
+		var childAsteroids = [];
+		var parent = this;
 		
-		var bPos = new Vector(this.pos.x - this.size.x/4,
-			this.pos.y + this.size.y/4);
-		var bSize = new Vector(this.size.x/2, this.size.y/2);
+		var childA = Object.create(null);
+		var childB = Object.create(null);
+		var childC = Object.create(null);
 		
-		var cPos = new Vector(this.pos.x + this.size.x/4,
-			this.pos.y + this.size.y/4);
-		var cSize = new Vector(this.size.x/2, this.size.y/2);
+		childA.pos = new Vector(parent.pos.x, parent.pos.y - parent.size.y/4);
+		childA.size = new Vector(parent.size.x, parent.size.y/2);
 		
-		var childA = new Asteroid(aPos, aSize);
-		var childB = new Asteroid(bPos, bSize);
-		var childC = new Asteroid(cPos, cSize);
+		childB.pos = new Vector(parent.pos.x - parent.size.x/4,
+			parent.pos.y + parent.size.y/4);
+		childB.size = new Vector(parent.size.x/2, parent.size.y/2);
 		
-		childA.orient = this.orient;
-		childB.orient = this.orient;
-		childC.orient = this.orient;
+		childC.pos = new Vector(parent.pos.x + parent.size.x/4,
+			parent.pos.y + parent.size.y/4);
+		childC.size = new Vector(parent.size.x/2, parent.size.y/2);
+
+		childA.orient = parent.orient;
+		childB.orient = parent.orient;
+		childC.orient = parent.orient;
 
 		// childA will escape towards -0.5*PI off parent orient
 		// childB will escape towards 0.75*PI off parent orient
@@ -404,22 +428,26 @@ Asteroid.prototype.fractureChildren = function() {
 		// velocity magnitude children will escape at
 		var escapeMag = 5;
 		
-		childA.velocity = this.velocity.plus(new Vector(
+		childA.velocity = parent.velocity.plus(new Vector(
 			Math.cos(childA.orient - 0.5*Math.PI) * escapeMag,
 			Math.sin(childA.orient - 0.5*Math.PI) * escapeMag)
 		);
-		childB.velocity = this.velocity.plus(new Vector(
+		childB.velocity = parent.velocity.plus(new Vector(
 			Math.cos(childB.orient + 0.75*Math.PI) * escapeMag,
 			Math.sin(childB.orient + 0.75*Math.PI) * escapeMag)
 		);
-		childC.velocity = this.velocity.plus(new Vector(
+		childC.velocity = parent.velocity.plus(new Vector(
 			Math.cos(childC.orient + 0.25*Math.PI) * escapeMag,
 			Math.sin(childC.orient + 0.25*Math.PI) * escapeMag)
 		);
 		
-		childAsteroids.push(childA);
-		childAsteroids.push(childB);
-		childAsteroids.push(childC);
+		childA.spin = parent.spin * 0.1;
+		childB.spin = parent.spin * 0.1;
+		childC.spin = parent.spin * 0.1;
+		
+		childAsteroids.push(new Asteroid(childA));
+		childAsteroids.push(new Asteroid(childB));
+		childAsteroids.push(new Asteroid(childC));
 		
 		return childAsteroids;
 	} else
@@ -433,15 +461,6 @@ Asteroid.prototype.updatePosition = function(step) {
 Asteroid.prototype.rotate = function(step) {
 	this.orient = this.orient + this.spin * step;
 };
-/*Asteroid.prototype.wallBump = function(axis) {
-	if (axis != 'x')
-		throw new Error("Was expecting 'x' or 'y' string, but received: " + axis);
-	console.log(this.pos.x, this.pos.y, 'going to increment ' + axis);
-	console.log(this.pos[axis]);
-	this.pos[axis] > 0 ? this.pos[axis] -= 1 : this.pos[axis] += 1;
-	console.log(this.pos[axis]);
-	return this.pos;
-}*/
 
 function Player(pos) {
 	this.pos = pos;
@@ -605,15 +624,17 @@ function runLevel(level, Display) {
 	runAnimation(animation);
 }
 
+// Asteroid constructor: Asteroid(pos, size, spin, velocity)
+
 function runGame(Display) {
 	var level = new Level();
 	var player = new Player(new Vector(0,0));
 	level.actors.push(player);
-	level.spawnAsteroid();
-	//level.spawnAsteroid();
-	//level.spawnAsteroid();
-	//level.spawnAsteroid();
-	
+	level.actors.push(level.getRandomAsteroid());
+	level.actors.push(level.getRandomAsteroid());
+	level.actors.push(level.getRandomAsteroid());
+	level.actors.push(level.getRandomAsteroid());
+
 	runLevel(level, Display);
 }
 

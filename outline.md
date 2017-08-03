@@ -7,6 +7,8 @@
 * origin (middle of length and height)
 * player
 * status (game running, game ended, etc; default is null (running)
+* elapsedGameTime (total gametime that has been 'stepped'
+* stage: holds the current 'stage' or 'level' that the player is on
 #### Methods:
 * animate  
   * runs if actions this.status != null
@@ -18,6 +20,8 @@
 * removeActor(actor) if actor is in this.actors array, remove actor from array and return true else return false
 * resolveCollition(actor, collision) does stuff to actor based on the collision object
 * calcPointVal(actor) returns a rounded number that is based on the size of the actor
+* checkForEnemies(array) returns true if any elements in the supplied array are asteroid
+* incrementStage(): advances the game stage depending on the gameOptions.difficulty('easy', 'medium', 'hard'); defaults to incrementing by 1
 
 ## Helper stuff
 ### Vector
