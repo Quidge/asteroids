@@ -383,12 +383,19 @@ Level.prototype.enemyTimer = function(elapsedTime) {
 	var difficulty = gameOptions.difficulty || 'easy';
 	
 };
-// Begin different actor types
-function Asteroid(pos, size, spin, velocity) {
+
+function Asteroid(
+	// set defaults using destructuring
+	{	pos = new Vector(300, 300),
+		size = new Vector(35, 35),
+		spin = 5,
+		velocity = new Vector(35, 35)
+	} = {}) {
+	
 	this.pos = pos;
 	this.size = size;
 	this.hitRadius = (this.size.x / 2 + this.size.y / 2) / 2; // average
-	this.spin = spin || 0;
+	this.spin = spin;
 	this.velocity = velocity;
 	this.orient = 0;
 }
@@ -398,8 +405,7 @@ Asteroid.prototype.act = function(step) {
 	this.updatePosition(step); // applies velocity to current position
 };
 Asteroid.prototype.fractureChildren = function() {
-	var childAsteroids = [];
-	
+
 	/*
 	Asteroids fracture in this pattern (whole square is parent asteroid):
 	
@@ -421,24 +427,27 @@ Asteroid.prototype.fractureChildren = function() {
 	
 	if (Math.min(this.size.x, this.size.y) > 15) {
 		
-		var aPos = new Vector(this.pos.x, this.pos.y - this.size.y/4)
-		var aSize = new Vector(this.size.x, this.size.y/2);
+		var childAsteroids = [];
+		var parent = this;
 		
-		var bPos = new Vector(this.pos.x - this.size.x/4,
-			this.pos.y + this.size.y/4);
-		var bSize = new Vector(this.size.x/2, this.size.y/2);
+		var childA = Object.create(null);
+		var childB = Object.create(null);
+		var childC = Object.create(null);
 		
-		var cPos = new Vector(this.pos.x + this.size.x/4,
-			this.pos.y + this.size.y/4);
-		var cSize = new Vector(this.size.x/2, this.size.y/2);
+		childA.pos = new Vector(parent.pos.x, parent.pos.y - parent.size.y/4);
+		childA.size = new Vector(parent.size.x, parent.size.y/2);
 		
-		var childA = new Asteroid(aPos, aSize);
-		var childB = new Asteroid(bPos, bSize);
-		var childC = new Asteroid(cPos, cSize);
+		childB.pos = new Vector(parent.pos.x - parent.size.x/4,
+			parent.pos.y + parent.size.y/4);
+		childB.size = new Vector(parent.size.x/2, parent.size.y/2);
 		
-		childA.orient = this.orient;
-		childB.orient = this.orient;
-		childC.orient = this.orient;
+		childC.pos = new Vector(parent.pos.x + parent.size.x/4,
+			parent.pos.y + parent.size.y/4);
+		childC.size = new Vector(parent.size.x/2, parent.size.y/2);
+
+		childA.orient = parent.orient;
+		childB.orient = parent.orient;
+		childC.orient = parent.orient;
 
 		// childA will escape towards -0.5*PI off parent orient
 		// childB will escape towards 0.75*PI off parent orient
@@ -447,22 +456,22 @@ Asteroid.prototype.fractureChildren = function() {
 		// velocity magnitude children will escape at
 		var escapeMag = 5;
 		
-		childA.velocity = this.velocity.plus(new Vector(
+		childA.velocity = parent.velocity.plus(new Vector(
 			Math.cos(childA.orient - 0.5*Math.PI) * escapeMag,
 			Math.sin(childA.orient - 0.5*Math.PI) * escapeMag)
 		);
-		childB.velocity = this.velocity.plus(new Vector(
+		childB.velocity = parent.velocity.plus(new Vector(
 			Math.cos(childB.orient + 0.75*Math.PI) * escapeMag,
 			Math.sin(childB.orient + 0.75*Math.PI) * escapeMag)
 		);
-		childC.velocity = this.velocity.plus(new Vector(
+		childC.velocity = parent.velocity.plus(new Vector(
 			Math.cos(childC.orient + 0.25*Math.PI) * escapeMag,
 			Math.sin(childC.orient + 0.25*Math.PI) * escapeMag)
 		);
 		
-		childAsteroids.push(childA);
-		childAsteroids.push(childB);
-		childAsteroids.push(childC);
+		childAsteroids.push(new Asteroid(childA));
+		childAsteroids.push(new Asteroid(childB));
+		childAsteroids.push(new Asteroid(childC));
 		
 		return childAsteroids;
 	} else
