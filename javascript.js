@@ -378,9 +378,26 @@ Level.prototype.spawnAsteroid = function(
 	var asteroid = new Asteroid(pos, size, spin, velocity);
 	this.actors.push(asteroid);
 };
+Level.prototype.getRandomAsteroid = function() {
+	var properties = Object.create(null);
+	
+	var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+		var rand2 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+	
+	if (rand1 > rand2)
+		properties.pos = new Vector(300*rand1, 300);
+	else
+		properties.pos = new Vector(300, 300*rand1);
+	
+	properties.spin = 5 * rand1;
+	properties.velocity = new Vector(10 + 50 * rand1, 10 + 50 * rand2);
+	properties.size = new Vector(15 + Math.abs(200 * rand1), 
+								20 + Math.abs(200 * rand2));
+	
+	return new Asteroid(properties);
+};
 Level.prototype.enemyTimer = function(elapsedTime) {
 	var difficulty = gameOptions.difficulty || 'easy';
-	
 };
 
 function Asteroid(
@@ -467,6 +484,10 @@ Asteroid.prototype.getChildren = function() {
 			Math.cos(childC.orient + 0.25*Math.PI) * escapeMag,
 			Math.sin(childC.orient + 0.25*Math.PI) * escapeMag)
 		);
+		
+		childA.spin = parent.spin * 0.1;
+		childB.spin = parent.spin * 0.1;
+		childC.spin = parent.spin * 0.1;
 		
 		childAsteroids.push(new Asteroid(childA));
 		childAsteroids.push(new Asteroid(childB));
@@ -653,7 +674,11 @@ function runGame(Display) {
 	var level = new Level();
 	var player = new Player(new Vector(0,0));
 	level.actors.push(player);
-	level.spawnAsteroid();
+	level.actors.push(level.getRandomAsteroid());
+	level.actors.push(level.getRandomAsteroid());
+	level.actors.push(level.getRandomAsteroid());
+	level.actors.push(level.getRandomAsteroid());
+
 	//level.spawnAsteroid();
 	//level.spawnAsteroid();
 	//level.spawnAsteroid();
