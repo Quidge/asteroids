@@ -16,9 +16,9 @@
   * runs level.checkClip on all actors stores (adds to playerPoints if missile collides with asteroid)
 * transport (takes actor, new Vector): changes actor.pos to second arg Vector
 * checkClip (takes actor) returns actor.type (or "wall") if actor.hitRadius is touching anything   
-* spawnAsteroid: creates new Asteroid with random attributes and adds it to the level.actors array
+* getRandomAsteroid: returns new Asteroid with random attributes (though pos is always from one of the walls)
 * removeActor(actor) if actor is in this.actors array, remove actor from array and return true else return false
-* resolveCollition(actor, collision) does stuff to actor based on the collision object
+* resolveCollision(actor, collision) does stuff to actor based on the collision object
 * calcPointVal(actor) returns a rounded number that is based on the size of the actor
 * checkForEnemies(array) returns true if any elements in the supplied array are asteroid
 * incrementStage(): advances the game stage depending on the gameOptions.difficulty('easy', 'medium', 'hard'); defaults to incrementing by 1
