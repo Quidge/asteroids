@@ -30,6 +30,7 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
 	this.drawPoints(); // draws playerPoints to top right
+	this.drawCurrentStage() // writes current stage playerPoints
 };
 CanvasDisplay.prototype.clearDisplay = function() {
 	this.cx.clearRect(0, 0, 
@@ -46,7 +47,23 @@ CanvasDisplay.prototype.drawPoints = function() {
 	
 	this.cx.fillText(this.level.playerPoints, 
 		this.canvas.width - 15, 0);
-}
+};
+CanvasDisplay.prototype.drawCurrentStage = function() {
+	var stageText;
+	if (this.level.currentStage)
+		stageText = 'stage: ' 
+					+ (this.level.stages.indexOf(this.level.currentStage) + 1);
+	else
+		stageText = 'winner winner chicken dinner';
+	
+	this.cx.fillStyel = "red";
+	this.cx.textAlign = "right";
+	this.cx.textBaseLine = "top";
+	this.cx.font = "small-caps 700 20px sans-serif";
+	
+	// draws underneath player points
+	this.cx.fillText(stageText, this.canvas.width - 15, 48);
+};
 CanvasDisplay.prototype.drawActors = function() {
 	for (var i = 0; i < this.level.actors.length; i++) {
 		
@@ -255,7 +272,6 @@ Level.prototype.checkForEnemies = function(actorArray) {
 			return true;
 		else 
 			return false;
-		return element.type == "asteroid;
 	}
 	return actorArray.some(test);
 }
