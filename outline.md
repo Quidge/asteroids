@@ -8,7 +8,9 @@
 * player
 * status (game running, game ended, etc; default is null (running)
 * elapsedGameTime (total gametime that has been 'stepped'
-* stage: holds the current 'stage' or 'level' that the player is on
+* stages: holds the array of game stages
+* currentStage: holds the current 'stage' or 'level' that the player is on
+
 #### Methods:
 * animate  
   * runs if actions this.status != null
@@ -22,6 +24,7 @@
 * calcPointVal(actor) returns a rounded number that is based on the size of the actor
 * checkForEnemies(array) returns true if any elements in the supplied array are asteroid
 * incrementStage(): advances the game stage depending on the gameOptions.difficulty('easy', 'medium', 'hard'); defaults to incrementing by 1
+* spawnStageEnemies(stage) spawns the enemies listed in the arg stage
 
 ## Helper stuff
 ### Vector

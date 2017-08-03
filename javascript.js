@@ -159,7 +159,7 @@ CanvasDisplay.prototype.drawResolution = function() {
 	}
 }
 
-function Level() {
+function Level(stages) {
 	this.length = 600;
 	this.height = 600;
 	// game state default origin is in center of length and width
@@ -169,22 +169,10 @@ function Level() {
 	this.playerPoints = 0;
 	this.status = 0; // -1 is lost, 0 is running, 1 is won
 	this.elapsedGameTime = 0;
-	this.stage = gameOptions.stage || 1;
+	this.stages = stages;
+	this.currentStage = stages[0];
 }
 
-Level.prototype.incrementStage = function() {
-	var advance;
-	if (gameOptions.difficulty == "easy")
-		advance = 1;
-	else if (gameOptions.difficulty == "medium")
-		advance = 3;
-	else if (gameOptions.difficulty == "hard")
-		advance = 5;
-	else
-		advance = 1;
-	
-	this.stage += advance;
-}
 Level.prototype.checkClip = function(actor) {
 	
 	var clipType = false;
@@ -267,6 +255,7 @@ Level.prototype.checkForEnemies = function(actorArray) {
 			return true;
 		else 
 			return false;
+		return element.type == "asteroid;
 	}
 	return actorArray.some(test);
 }
@@ -297,9 +286,20 @@ Level.prototype.animate = function(step, keys) {
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
 	}
-	if (!this.checkForEnemies(this.actors))
-		this.status = 1;
-
+	if (!this.checkForEnemies(this.actors)) {
+		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
+		console.log(nextStage);
+		if (nextStage) {
+			this.spawnStageEnemies(nextStage);
+			this.currentStage = nextStage;
+		} else
+			this.status = 1;
+	}
+};
+Level.prototype.spawnStageEnemies = function(stage) {
+	for (var i = 0; i < stage.asteroids; i++) {
+		this.actors.push(this.getRandomAsteroid());
+	}
 };
 Level.prototype.resolveCollision = function(actor, collision) {
 	if (!collision)
@@ -627,18 +627,23 @@ function runLevel(level, Display) {
 
 // Asteroid constructor: Asteroid(pos, size, spin, velocity)
 
-function runGame(Display) {
-	var level = new Level();
+function runGame(Display, stages) {
+	var level = new Level(stages);
 	var player = new Player(new Vector(0,0));
 	level.actors.push(player);
-	level.actors.push(level.getRandomAsteroid());
-	level.actors.push(level.getRandomAsteroid());
-	level.actors.push(level.getRandomAsteroid());
-	level.actors.push(level.getRandomAsteroid());
+	level.spawnStageEnemies(level.stages[0]);
+
 
 	runLevel(level, Display);
 }
 
+var GAME_STAGES = [
+	{'asteroids': 1},
+	{'asteroids': 3},
+	{'asteroids': 5},
+	{'asteroids': 7}
+]
+
 // end helper stuff
 
-runGame(CanvasDisplay);
+runGame(CanvasDisplay, GAME_STAGES);
