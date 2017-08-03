@@ -309,8 +309,8 @@ Level.prototype.resolveCollision = function(actor, collision) {
 	}
 	if (actor.type == "missile" && collision.type == "asteroid") {
 		this.removeActor(actor);
-		// fractureChildren returns array of children asteroids or false
-		var children = collision.fractureChildren();
+		// getChildren returns array of children asteroids or false
+		var children = collision.getChildren();
 		if (children) {
 			for (var i = 0; i < children.length; i++)
 				this.actors.push(children[i]);	
@@ -377,7 +377,6 @@ Level.prototype.spawnAsteroid = function(
 	
 	var asteroid = new Asteroid(pos, size, spin, velocity);
 	this.actors.push(asteroid);
-	
 };
 Level.prototype.enemyTimer = function(elapsedTime) {
 	var difficulty = gameOptions.difficulty || 'easy';
@@ -404,7 +403,7 @@ Asteroid.prototype.act = function(step) {
 	this.rotate(step); // applies spin to current orientation
 	this.updatePosition(step); // applies velocity to current position
 };
-Asteroid.prototype.fractureChildren = function() {
+Asteroid.prototype.getChildren = function() {
 
 	/*
 	Asteroids fracture in this pattern (whole square is parent asteroid):
