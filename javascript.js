@@ -30,6 +30,7 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
 	this.drawPoints(); // draws playerPoints to top right
+	this.drawCurrentStage() // writes current stage playerPoints
 };
 CanvasDisplay.prototype.clearDisplay = function() {
 	this.cx.clearRect(0, 0, 
@@ -46,7 +47,23 @@ CanvasDisplay.prototype.drawPoints = function() {
 	
 	this.cx.fillText(this.level.playerPoints, 
 		this.canvas.width - 15, 0);
-}
+};
+CanvasDisplay.prototype.drawCurrentStage = function() {
+	var stageText;
+	if (this.level.currentStage)
+		stageText = 'stage: ' 
+					+ (this.level.stages.indexOf(this.level.currentStage) + 1);
+	else
+		stageText = 'winner winner chicken dinner';
+	
+	this.cx.fillStyel = "red";
+	this.cx.textAlign = "right";
+	this.cx.textBaseLine = "top";
+	this.cx.font = "small-caps 700 20px sans-serif";
+	
+	// draws underneath player points
+	this.cx.fillText(stageText, this.canvas.width - 15, 48);
+};
 CanvasDisplay.prototype.drawActors = function() {
 	for (var i = 0; i < this.level.actors.length; i++) {
 		
@@ -159,7 +176,7 @@ CanvasDisplay.prototype.drawResolution = function() {
 	}
 }
 
-function Level() {
+function Level(stages) {
 	this.length = 600;
 	this.height = 600;
 	// game state default origin is in center of length and width
@@ -169,22 +186,10 @@ function Level() {
 	this.playerPoints = 0;
 	this.status = 0; // -1 is lost, 0 is running, 1 is won
 	this.elapsedGameTime = 0;
-	this.stage = gameOptions.stage || 1;
+	this.stages = stages;
+	this.currentStage = stages[0];
 }
 
-Level.prototype.incrementStage = function() {
-	var advance;
-	if (gameOptions.difficulty == "easy")
-		advance = 1;
-	else if (gameOptions.difficulty == "medium")
-		advance = 3;
-	else if (gameOptions.difficulty == "hard")
-		advance = 5;
-	else
-		advance = 1;
-	
-	this.stage += advance;
-}
 Level.prototype.checkClip = function(actor) {
 	
 	var clipType = false;
@@ -297,9 +302,20 @@ Level.prototype.animate = function(step, keys) {
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
 	}
-	if (!this.checkForEnemies(this.actors))
-		this.status = 1;
-
+	if (!this.checkForEnemies(this.actors)) {
+		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
+		console.log(nextStage);
+		if (nextStage) {
+			this.spawnStageEnemies(nextStage);
+			this.currentStage = nextStage;
+		} else
+			this.status = 1;
+	}
+};
+Level.prototype.spawnStageEnemies = function(stage) {
+	for (var i = 0; i < stage.asteroids; i++) {
+		this.actors.push(this.getRandomAsteroid());
+	}
 };
 Level.prototype.resolveCollision = function(actor, collision) {
 	if (!collision)
@@ -627,18 +643,23 @@ function runLevel(level, Display) {
 
 // Asteroid constructor: Asteroid(pos, size, spin, velocity)
 
-function runGame(Display) {
-	var level = new Level();
+function runGame(Display, stages) {
+	var level = new Level(stages);
 	var player = new Player(new Vector(0,0));
 	level.actors.push(player);
-	level.actors.push(level.getRandomAsteroid());
-	level.actors.push(level.getRandomAsteroid());
-	level.actors.push(level.getRandomAsteroid());
-	level.actors.push(level.getRandomAsteroid());
+	level.spawnStageEnemies(level.stages[0]);
+
 
 	runLevel(level, Display);
 }
 
+var GAME_STAGES = [
+	{'asteroids': 1},
+	{'asteroids': 3},
+	{'asteroids': 5},
+	{'asteroids': 7}
+]
+
 // end helper stuff
 
-runGame(CanvasDisplay);
+runGame(CanvasDisplay, GAME_STAGES);
