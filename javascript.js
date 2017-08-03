@@ -309,7 +309,8 @@ Level.prototype.resolveCollision = function(actor, collision) {
 	}
 	if (actor.type == "missile" && collision.type == "asteroid") {
 		this.removeActor(actor);
-		// getChildren returns array of children asteroids or false
+		// getChildren returns array of children asteroids or false 
+		// if asteroid is too small
 		var children = collision.getChildren();
 		if (children) {
 			for (var i = 0; i < children.length; i++)
