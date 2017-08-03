@@ -367,36 +367,17 @@ Level.prototype.resolveCollision = function(actor, collision) {
 	}
 	this.actors.push(asteroid);
 };*/
-Level.prototype.spawnAsteroid = function(pos = 'random', size = 'random', spin = 'random', velocity = 'random') {
+Level.prototype.spawnAsteroid = function(
+	// set defaults
+	{	pos = new Vector(this.length/2, this.height/2),
+		size = new Vector(150, 150),
+		spin = 5,
+		velocity = new Vector(35, 35)
+	} = {}) {
 	
-	// init random stuff if any of the parameters are left out
-	if (arguments.some(function(elem) {elem == 'random'})) { 
-		var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
-		var rand2 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
-	}
-
-	// Sets start position to be at random location on some wall
-	// If in the extraordinarily unlikely scenario that rand1 == rand2, 
-	// start position is set at 300,300 (bottom right corner)
-	if (rand1 > rand2)
-		var startPos = (pos == 'random') ? new Vector(300*rand1, 300) : pos;
-	else if (rand1 < rand2)
-		var startPos = (pos == 'random') ? new Vector(300, 300*rand1) : pos;
-	else
-		var startPos = (pos == 'random') ? new Vector(300, 300) : pos;
-	var startSpin = (spin == 'random') ? 5 * rand1 : spin;
-	var startVelocity = (velocity == 'random') ? new Vector(10 + 50 * rand1, 10 + 50 * rand2) : velocity;
-	// can't have negative sizes
-	// minimum size is 15x20
-	var startSize = (size == 'random') ? new Vector(15 + Math.abs(200 * rand1), 
-							20 + Math.abs(200 * rand2)) : size;
-
-	//manually set size, don't mess with randoms
-	//var size = new Vector(50, 300);
-
-	var asteroid = new Asteroid(startPos, startSize, startSpin, startVelocity);
-		
+	var asteroid = new Asteroid(pos, size, spin, velocity);
 	this.actors.push(asteroid);
+	
 };
 Level.prototype.enemyTimer = function(elapsedTime) {
 	var difficulty = gameOptions.difficulty || 'easy';
