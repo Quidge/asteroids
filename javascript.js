@@ -667,7 +667,8 @@ function runLevel(level, Display) {
 	
 	/* 	Animation is designed to be run as a callback. Anytime it returns false, 
 		it will not run again. Else, it loops endlessly, each time being passed
-		a time delta from the last time it ran (usually ~16 milliseconds).
+		a time delta from the last time it ran (usually ~.016 seconds, so ~16
+		milliseconds).
 	*/ 
 	
 		if (display.splashScreen) {
