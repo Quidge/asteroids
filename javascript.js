@@ -191,16 +191,18 @@ CanvasDisplay.prototype.drawSplashScreen = function() {
 	this.cx.textAlign = "center";
 	this.cx.fillStyle = "red";
 	
-	this.cx.fillText("use LEFT and RIGHT arrow keys to steer",
+	this.cx.fillText("use LEFT and RIGHT keys to STEER",
 		this.canvas.width/2, this.canvas.height/2 + lineHeight * 0);
-	this.cx.fillText("use UP arrow key to use ship thruster",
+	this.cx.fillText("use UP ARROW key to JET",
 		this.canvas.width/2, this.canvas.height/2 + lineHeight * 1);		
-	this.cx.fillText("use SPACEBAR key to shoot",
+	this.cx.fillText("use SPACEBAR key to SHOOT",
 		this.canvas.width/2, this.canvas.height/2 + lineHeight * 2);		
-	this.cx.fillText("use ESCAPE key to pause",
+	this.cx.fillText("use ESCAPE key to PAUSE",
 		this.canvas.width/2, this.canvas.height/2 + lineHeight * 3);		
-	this.cx.fillText("press B key to begin",
-		this.canvas.width/2, this.canvas.height/2 + lineHeight * 5);		
+	this.cx.fillText("use F key to WARP (be careful!)",
+		this.canvas.width/2, this.canvas.height/2 + lineHeight * 4);		
+	this.cx.fillText("press B key to BEGIN",
+		this.canvas.width/2, this.canvas.height/2 + lineHeight * 6);		
 
 };
 
@@ -330,6 +332,7 @@ Level.prototype.animate = function(step, keys) {
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
 	}
+	
 	if (!this.checkForEnemies(this.actors)) {
 		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
 		console.log(nextStage);
@@ -515,10 +518,18 @@ function Player(pos) {
 	this.velocity = new Vector(0, 0); // direction ship is drifting in
 	this.accel = gameOptions.playerAccel || 100; 
 	this.orient = 0; //in radians; begin pointing north
-	this.gunsReady = 100; //less than 100 means guns aren't ready
+	this.gunsReady = 100; //less than 100 means shoot method won't do anything
+	this.warping = false;
 }
 Player.prototype.type = "player";
 Player.prototype.act = function(step, level, keys) {
+	this.warping = false;
+	if (keys.warp) {
+		this.pos = new Vector(Math.floor(300 * getRandom(-1, 1)),
+								Math.floor(300 * getRandom(-1, 1)))
+		console.log(this.pos);
+		this.warping = true;
+	}
 	this.shoot(step, level, keys);
 	this.turn(step, keys); // affects orientation
 	this.jet(step, keys); // affects velocity
@@ -581,6 +592,10 @@ Vector.prototype.times = function(factor) {
 	return new Vector(this.x * factor, this.y * factor);
 };
 
+function getRandom(min, max) {
+	return Math.random() * (max - min) + min;
+};
+
 function runAnimation(frameFunc) {
 	var lastTime = null;
 	function frame(time) {
@@ -597,7 +612,7 @@ function runAnimation(frameFunc) {
 	requestAnimationFrame(frame);
 }
 
-var arrowCodes = {37: "left", 38: "up", 39: "right", 32: "space"};
+var arrowCodes = {37: "left", 38: "up", 39: "right", 32: "space", 70: "warp"};
 
 function trackKeys(codes) {
 	var pressed = Object.create(null);
@@ -608,6 +623,13 @@ function trackKeys(codes) {
 	}
 	addEventListener("keydown", handler);
 	addEventListener("keyup", handler);
+	/*// special warp functionality, must come after the other two
+	addEventListener("keyup", function(event) {
+		if (event.keyCode == 70)
+			pressed.warp = true;
+		else
+			pressed.warp = false;
+	});*/
 
 	return pressed;
 }
@@ -640,7 +662,7 @@ function runLevel(level, Display) {
 	display.splashScreen = true;
 	//pausing event function
 	function handleKey(event) {
-		if (event.keyCode == 27) { // keyCode 27 is escape key
+		if (event.keyCode == 27	) { // keyCode 27 is escape key
 			if (running == "no") {
 				running = "yes";
 				display.isPaused = false;
