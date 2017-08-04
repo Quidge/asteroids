@@ -34,6 +34,7 @@
 * plus
 * times
 ### gameOptions (object with various properties, most having boolean values)
+### getRandom(min, max) returns floating point number between min and max
 
 ### runLevel (function itself)
 * takes level object and Display constructor
@@ -63,6 +64,7 @@
 * orient(ation) (in radians) (this is reference to global origin)
 * gunsReady (at 100 they are ready to fire, firing sets gunsReady to 0 and 
 * playerPoints
+* warping: boolean
 ###### Constants
 * size (vector)
 * hitRadius (collision detection "box", but as a circle); radius is avg between actor.size.x/2 and actor.size.y/2
@@ -74,6 +76,7 @@
 * turn
 * jet (affects change in velocity)
 * updatePosition (takes new velocity and applies it to position)
+* warp
 #### Properties
 * type = "player"
 
