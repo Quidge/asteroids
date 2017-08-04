@@ -10,6 +10,7 @@ function CanvasDisplay(parent, level) {
 	this.animationTime = 0;
 	
 	this.isPaused = false;
+	this.splashScreen = false;
 	this.level = level;
 	
 } 
@@ -26,6 +27,8 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 	this.drawBackground();
 	// both ship and asteroids are actors
 	this.drawActors(); 
+	if (this.splashScreen)
+		this.drawSplashScreen();
 	if (this.level.status != 0 || this.isPaused)
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
@@ -174,7 +177,32 @@ CanvasDisplay.prototype.drawResolution = function() {
 		this.cx.fillText("we're paused homie",
 			this.canvas.width/2, this.canvas.height/2);
 	}
-}
+};
+CanvasDisplay.prototype.drawSplashScreen = function() {
+	this.cx.globalAlpha = 0.8;
+	this.cx.fillStyle = "black";
+	this.cx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+	this.cx.globalAlpha = 1.0;
+	
+	var textSize = 16;
+	var lineHeight = textSize * 1.2;
+	this.cx.font = "small-caps 700 " + textSize + "px sans-serif"
+	this.cx.textBaseline = "middle";
+	this.cx.textAlign = "center";
+	this.cx.fillStyle = "red";
+	
+	this.cx.fillText("use LEFT and RIGHT arrow keys to steer",
+		this.canvas.width/2, this.canvas.height/2 + lineHeight * 0);
+	this.cx.fillText("use UP arrow key to use ship thruster",
+		this.canvas.width/2, this.canvas.height/2 + lineHeight * 1);		
+	this.cx.fillText("use SPACEBAR key to shoot",
+		this.canvas.width/2, this.canvas.height/2 + lineHeight * 2);		
+	this.cx.fillText("use ESCAPE key to pause",
+		this.canvas.width/2, this.canvas.height/2 + lineHeight * 3);		
+	this.cx.fillText("press B key to begin",
+		this.canvas.width/2, this.canvas.height/2 + lineHeight * 5);		
+
+};
 
 function Level(stages) {
 	this.length = 600;
@@ -584,13 +612,13 @@ function trackKeys(codes) {
 	return pressed;
 }
 
+var arrows = trackKeys(arrowCodes);
+
 var gameOptions = Object.create(null);
 gameOptions = {
 	'showHitRadius': false,
 	'playerAccel': 20
 };
-
-var arrows = trackKeys(arrowCodes);
 
 /* Okay, so this part is hard because it's fairly abstracted and uses recursion.
 
@@ -609,6 +637,8 @@ var arrows = trackKeys(arrowCodes);
 function runLevel(level, Display) {
 	var display = new Display(document.body, level, gameOptions);
 	var running = "yes";
+	display.splashScreen = true;
+	//pausing event function
 	function handleKey(event) {
 		if (event.keyCode == 27) { // keyCode 27 is escape key
 			if (running == "no") {
@@ -624,7 +654,29 @@ function runLevel(level, Display) {
 	}
 	addEventListener("keydown", handleKey);
 	
+	//splash screen event function; will become deregistered when splash
+	//screen == false;
+	function endSplashScreen(event) {
+		if (event.keyCode == 66) { //keyCode 66 is b key
+			display.splashScreen = false;
+			runAnimation(animation);
+		}
+	}
+	
 	function animation(step) {
+	
+	/* 	Animation is designed to be run as a callback. Anytime it returns false, 
+		it will not run again. Else, it loops endlessly, each time being passed
+		a time delta from the last time it ran (usually ~16 milliseconds).
+	*/ 
+	
+		if (display.splashScreen) {
+			display.drawFrame();
+			addEventListener("keydown", endSplashScreen);
+			return false;
+		} else
+			removeEventListener("keydown", endSplashScreen);
+		
 		if (running == "pausing") {
 			running = "no";
 			display.isPaused = true;
