@@ -206,7 +206,7 @@ CanvasDisplay.prototype.drawSplashScreen = function() {
 
 };
 
-function Level(stages) {
+function Level(stages, player) {
 	this.length = 600;
 	this.height = 600;
 	// game state default origin is in center of length and width
@@ -218,6 +218,8 @@ function Level(stages) {
 	this.elapsedGameTime = 0;
 	this.stages = stages;
 	this.currentStage = stages[0];
+	
+	this.player = player;
 }
 
 Level.prototype.checkClip = function(actor) {
@@ -562,6 +564,30 @@ Player.prototype.updatePosition = function() {
 	this.pos.y = this.pos.y + this.velocity.y;
 };
 
+function Alien({pos = new Vector(0,0),
+				velocity = new Vector(0,0),
+				gunsReady = 0} = {}) {
+	this.pos = pos;
+	this.size = new Vector(15, 20);
+	this.hitRadius = Math.max(this.size.x, this.size.y) / 2;
+	this.velocity = velocity; // direction ship is drifting in
+	this.gunsReady = gunsReady; //less than 1000 means shoot method won't do anything
+}
+
+Alien.prototype.type = "alien";
+Alien.prototype.act = function(step, level) {
+	this.shoot(step, level);
+	this.updatePosition();
+};
+Alien.prototype.shoot = function(step, level) {
+	if (this.gunsReady >= 1000) {
+		//figure out what direction to shoot
+		//var angle = level.player.pos
+		var newMissile = {'velocity'}
+		level.actors.push(new Missile(this.pos, this.velocity, this.orient));
+	}
+};
+
 function Missile(initialPos, velocity, orient) {
 	this.pos = initialPos; //CanvasDisplay draws missiles beyond pos, in the opposite direction of orient (missiles have their body 'tail' behind their pos
 	this.size = new Vector(5, 10);
@@ -719,8 +745,8 @@ function runLevel(level, Display) {
 // Asteroid constructor: Asteroid(pos, size, spin, velocity)
 
 function runGame(Display, stages) {
-	var level = new Level(stages);
 	var player = new Player(new Vector(0,0));
+	var level = new Level(stages, player);
 	level.actors.push(player);
 	level.spawnStageEnemies(level.stages[0]);
 

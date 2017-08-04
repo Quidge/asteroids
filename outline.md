@@ -1,15 +1,15 @@
 # Outline
-## Level object
+## Level object(stages, player)
 #### Vars:
 * actors array
 * length
 * height
 * origin (middle of length and height)
-* player
 * status (game running, game ended, etc; default is null (running)
 * elapsedGameTime (total gametime that has been 'stepped'
 * stages: holds the array of game stages
 * currentStage: holds the current 'stage' or 'level' that the player is on
+* player: direct reference to the controlled Player object, doesn't go through this.actors. (I don't feel comfortable always assuming player will be actors[0]). 
 
 #### Methods:
 * animate  
@@ -97,8 +97,18 @@
 * position (vector)
 * size (vector)
 * speed
-#### Methods
-* fizzle
 #### Properties
 * type ("missile")
+
+### Alien
+#### Vars
+* position (vector)
+* size (vector)
+* hitRadius (circle thing again)
+* velocity
+* gunsReady
+#### Methods
+* act (this will be run in level.animate > actors.forEach loop)
+* shoot (fire if guns are 'ready')
+* update position oscillating cosine behavior
 
