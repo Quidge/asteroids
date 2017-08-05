@@ -154,6 +154,10 @@ CanvasDisplay.prototype.drawActors = function() {
 			this.cx.closePath();
 			this.cx.stroke();
 		}
+		
+		if (actor.type == "alien") {
+			this.cx.fillRect(aX, aY, actor.size.x, actor.size.y);
+		}
 	}; 
 };
 CanvasDisplay.prototype.drawResolution = function() {
@@ -564,28 +568,38 @@ Player.prototype.updatePosition = function() {
 	this.pos.y = this.pos.y + this.velocity.y;
 };
 
-function Alien({pos = new Vector(0,0),
-				velocity = new Vector(0,0),
+function Alien({pos = new Vector(300,0),
+				velocity = new Vector(200,0),
 				gunsReady = 0} = {}) {
 	this.pos = pos;
 	this.size = new Vector(15, 20);
 	this.hitRadius = Math.max(this.size.x, this.size.y) / 2;
-	this.velocity = velocity; // direction ship is drifting in
+	this.velocity = velocity; 	// I treat this as a constant for now, like a
+								// scaler instead of something with i and j
+								// components that mean something directionally.
 	this.gunsReady = gunsReady; //less than 1000 means shoot method won't do anything
+	this.cycle = 0; // aliens move in sin wave behavior
 }
 
 Alien.prototype.type = "alien";
 Alien.prototype.act = function(step, level) {
+	this.cycle += step;
 	this.shoot(step, level);
-	this.updatePosition();
+	this.updatePosition(step);
 };
 Alien.prototype.shoot = function(step, level) {
-	if (this.gunsReady >= 1000) {
+	/*if (this.gunsReady >= 1000) {
 		//figure out what direction to shoot
 		//var angle = level.player.pos
 		var newMissile = {'velocity'}
 		level.actors.push(new Missile(this.pos, this.velocity, this.orient));
-	}
+	}*/
+};
+Alien.prototype.updatePosition = function(step) {
+	// sin wave behavior, scrolls right to left
+	
+	this.pos.x += this.velocity.x * step;
+	this.pos.y += Math.sin(this.cycle * 2 * Math.PI) * this.velocity.x * step; 
 };
 
 function Missile(initialPos, velocity, orient) {
@@ -749,6 +763,7 @@ function runGame(Display, stages) {
 	var level = new Level(stages, player);
 	level.actors.push(player);
 	level.spawnStageEnemies(level.stages[0]);
+	level.actors.push(new Alien());
 
 
 	runLevel(level, Display);
