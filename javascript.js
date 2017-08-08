@@ -587,15 +587,19 @@ Alien.prototype.act = function(step, level) {
 	this.cycle += step;
 	this.shoot(step, level);
 	this.updatePosition(step);
-	this.gunsRead += step;
+	this.gunsReady += step * 500;
 };
 Alien.prototype.shoot = function(step, level) {
 	if (this.gunsReady >= 1000) {
 		//figure out what direction to shoot
 		//var angle = level.player.pos
+		var opposite = this.pos.x - level.player.pos.x;
+		var adjacent = this.pos.y - level.player.pos.y;
+		var angle = Math.atan(opposite/adjacent);
 		
-		var newMissile = {'velocity'}
-		level.actors.push(new Missile(this.pos, this.velocity, this.orient));
+		level.actors.push(new Missile(this.pos, this.velocity, angle));
+		this.gunsReady = 0;
+		console.log(Math.atan(opposite/adjacent), opposite, adjacent, angle);
 	}
 };
 Alien.prototype.updatePosition = function(step) {
