@@ -579,6 +579,7 @@ function Alien({pos = new Vector(300,0),
 								// components that mean something directionally.
 	this.gunsReady = gunsReady; //less than 1000 means shoot method won't do anything
 	this.cycle = 0; // aliens move in sin wave behavior
+	this.orient = 0;
 }
 
 Alien.prototype.type = "alien";
@@ -586,14 +587,16 @@ Alien.prototype.act = function(step, level) {
 	this.cycle += step;
 	this.shoot(step, level);
 	this.updatePosition(step);
+	this.gunsRead += step;
 };
 Alien.prototype.shoot = function(step, level) {
-	/*if (this.gunsReady >= 1000) {
+	if (this.gunsReady >= 1000) {
 		//figure out what direction to shoot
 		//var angle = level.player.pos
+		
 		var newMissile = {'velocity'}
 		level.actors.push(new Missile(this.pos, this.velocity, this.orient));
-	}*/
+	}
 };
 Alien.prototype.updatePosition = function(step) {
 	// sin wave behavior, scrolls right to left

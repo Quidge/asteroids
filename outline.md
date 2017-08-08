@@ -107,6 +107,8 @@
 * hitRadius (circle thing again)
 * velocity
 * gunsReady
+* cycle (incremented by step, needed to calc sin wave position)
+* orient
 #### Methods
 * act (this will be run in level.animate > actors.forEach loop)
 * shoot (fire if guns are 'ready')
