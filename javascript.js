@@ -544,7 +544,10 @@ Player.prototype.act = function(step, level, keys) {
 };
 Player.prototype.shoot = function(step, level, keys) {	
 	if (keys.space && this.gunsReady >= 100) {
-			level.actors.push(new Missile(this.pos, this.velocity, this.orient));
+			level.actors.push(new Missile({
+				'pos': this.pos,
+				'orient': this.orient
+				}));
 		this.gunsReady = 0; //this forces a delay after firing 
 	}
 };
@@ -590,16 +593,66 @@ Alien.prototype.act = function(step, level) {
 	this.gunsReady += step * 500;
 };
 Alien.prototype.shoot = function(step, level) {
-	if (this.gunsReady >= 1000) {
+	if (this.gunsReady >= 500) {
 		//figure out what direction to shoot
 		//var angle = level.player.pos
-		var opposite = this.pos.x - level.player.pos.x;
-		var adjacent = this.pos.y - level.player.pos.y;
-		var angle = Math.atan(opposite/adjacent);
+		/*
+		var opposite = level.player.pos.x - this.pos.x;
+		var adjacent = level.player.pos.y - this.pos.y;
+		var hyp = Math.hypot(opposite, adjacent);
 		
-		level.actors.push(new Missile(this.pos, this.velocity, angle));
+		var missileVelocity = new Vector(	Math.cos(a djacent/hyp) * 5,
+											Math.sin(opposite/hyp) * 5);
+		console.log(this.pos, missileVelocity);
+		level.actors.push(new Missile({
+			'initialPos': this.pos,
+			'velocity': missileVelocity
+			}));
 		this.gunsReady = 0;
-		console.log(Math.atan(opposite/adjacent), opposite, adjacent, angle);
+		//console.log(Math.atan(opposite/adjacent), opposite, adjacent, angle);*/
+		
+		// start dumb way
+		
+		var opposite = level.player.pos.x - this.pos.x;
+		var adjacent = level.player.pos.y - this.pos.y;
+		//var angle = (Math.atan(opposite/adjacent) / 360) * 2 * Math.PI;
+		var angle = Math.atan(Math.abs(opposite/adjacent));
+		//console.log(angle);
+		
+		// check if right side
+		if (level.player.pos.x > this.pos.x) {
+			// check if above
+			if (level.player.pos.y > this.pos.y) {
+				// player is in first quadrant
+				angle = angle;
+				console.log('1st: ', angle);
+			} else if (level.player.pos.y < this.pos.y) {
+				// player is in fourth quadrant
+				angle += 1.5 * Math.PI;
+				console.log('4th: ', angle);
+			}
+		// check if left side
+		} else if (level.player.pos.x < this.pos.x) {
+			// check if below
+			if (level.player.pos.y < this.pos.y) {
+				// player is in third quadrant
+				angle += Math.PI;
+				console.log('3rd: ', angle);
+			} else if (level.player.pos.y > this.pos.y) {
+				// player is in second quadrant
+				angle += 0.5 * Math.PI;
+				console.log('2nd: ', angle);
+			}
+		}
+		//console.log(angle);
+		
+		var missileVelocity = new Vector(	Math.cos(angle) * 5,
+											Math.sin(angle) * 5);
+		level.actors.push(new Missile({
+			'initialPos': this.pos,
+			'velocity': missileVelocity,
+			}));
+		this.gunsReady = 0;
 	}
 };
 Alien.prototype.updatePosition = function(step) {
@@ -609,11 +662,13 @@ Alien.prototype.updatePosition = function(step) {
 	this.pos.y += Math.sin(this.cycle * 2 * Math.PI) * this.velocity.x * step; 
 };
 
-function Missile(initialPos, velocity, orient) {
+function Missile({	initialPos = new Vector(0,0),
+					orient = 0,
+					velocity} = {}) {
 	this.pos = initialPos; //CanvasDisplay draws missiles beyond pos, in the opposite direction of orient (missiles have their body 'tail' behind their pos
 	this.size = new Vector(5, 10);
 	this.orient = orient;
-	this.velocity = new Vector(Math.cos(this.orient) * 5,
+	this.velocity = velocity || new Vector(Math.cos(this.orient) * 5,
 								Math.sin(this.orient) * 5);
 	this.distTravel = 0;
 }
