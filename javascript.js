@@ -74,7 +74,14 @@ CanvasDisplay.prototype.drawActors = function() {
 		// x and y of actor pos
 		var aX = this.level.origin.x + actor.pos.x;
 		var aY = this.level.origin.y + actor.pos.y;
+		console.log('+++');
+		console.log(this.level.origin);
+		console.log('actor.type: ' + actor.type, actor.pos);
+		console.log(aX, aY);
+		console.log('+++');
 		
+		//this.cx.scale(1, -1);
+				
 		// draw actor hitRadius (this is only for development)
 		if (gameOptions.showHitRadius) {
 			this.cx.beginPath();
@@ -541,6 +548,7 @@ Player.prototype.act = function(step, level, keys) {
 	this.jet(step, keys); // affects velocity
 	this.updatePosition(); //applies new velocity to position
 	this.gunsReady += step * 500; //guns 'charge' over time
+	console.log(this.pos);
 };
 Player.prototype.shoot = function(step, level, keys) {	
 	if (keys.space && this.gunsReady >= 100) {
@@ -612,13 +620,18 @@ Alien.prototype.shoot = function(step, level) {
 		//console.log(Math.atan(opposite/adjacent), opposite, adjacent, angle);*/
 		
 		// start dumb way
-		
+		var playerY = -level.player.y;
+		var alienY = -this.pos.y;
 		var opposite = level.player.pos.x - this.pos.x;
 		var adjacent = level.player.pos.y - this.pos.y;
 		//var angle = (Math.atan(opposite/adjacent) / 360) * 2 * Math.PI;
 		var angle = Math.atan(Math.abs(opposite/adjacent));
 		//console.log(angle);
 		
+		console.log('***');
+		console.log('player: ', level.player.pos)
+		console.log('alien: ', this.pos);
+		console.log('***');
 		// check if right side
 		if (level.player.pos.x > this.pos.x) {
 			// check if above
@@ -636,7 +649,7 @@ Alien.prototype.shoot = function(step, level) {
 			// check if below
 			if (level.player.pos.y < this.pos.y) {
 				// player is in third quadrant
-				angle += Math.PI;
+				angle += 1.0 * Math.PI;
 				console.log('3rd: ', angle);
 			} else if (level.player.pos.y > this.pos.y) {
 				// player is in second quadrant
