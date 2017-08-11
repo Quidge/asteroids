@@ -196,7 +196,6 @@ CanvasDisplay.prototype.drawActors = function() {
 			this.cx.stroke();
 			
 			this.cx.restore();
-			//this.cx.fillRect(aX, aY, actor.size.x, actor.size.y);
 		}
 	}; 
 };
