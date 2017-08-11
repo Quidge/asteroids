@@ -572,7 +572,6 @@ Player.prototype.act = function(step, level, keys) {
 	if (keys.warp) {
 		this.pos = new Vector(Math.floor(300 * getRandom(-1, 1)),
 								Math.floor(300 * getRandom(-1, 1)))
-		console.log(this.pos);
 		this.warping = true;
 	}
 	this.shoot(step, level, keys);
@@ -634,23 +633,16 @@ Alien.prototype.act = function(step, level) {
 Alien.prototype.shoot = function(step, level) {
 	if (this.gunsReady >= 1000) {
 		//figure out what direction to shoot
-		console.log('---start---');
-		console.log('player pos: ', level.player.pos.x, level.player.pos.y);
-		console.log('alien pos: ', this.pos.x, this.pos.y);
 		var run = level.player.pos.x - this.pos.x;
 		var rise = level.player.pos.y - this.pos.y;
 		var hyp = Math.hypot(run, rise); 
-		console.log('Rise, run: ', rise, run);
-
-		console.log('---end---');
 
 		var alienMissile = new Missile({
 			'initialPos': this.pos,
-			'orient': 0,
+			'orient': 0, 	//this needs to be something other than 0, but i 
+							// can't figure out how to get it
 			'velocity': new Vector((run/hyp) * 5, (rise/hyp) * 5)
 			});
-		//alienMissile.velocity.x = (run/hyp) * 20;
-		//alienMissile.velocity.y = (rise/hyp) * 20;
 		level.actors.push(alienMissile);
 		
 		this.gunsReady = 0;
