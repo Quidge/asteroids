@@ -156,7 +156,46 @@ CanvasDisplay.prototype.drawActors = function() {
 		}
 		
 		if (actor.type == "alien") {
-			this.cx.fillRect(aX, aY, actor.size.x, actor.size.y);
+			var width = actor.size.x;
+			var height = actor.size.y;
+			
+			this.cx.save();
+			this.cx.translate(aX, aY);
+			
+			//draw alien ship outer bevel
+			this.cx.beginPath();
+			this.cx.moveTo(-width/2, 0);
+			this.cx.lineTo(width/2, 0);
+			this.cx.closePath();
+			this.cx.stroke();
+			
+			//draw alien ship top half
+			this.cx.beginPath();
+			this.cx.moveTo((-width/2) * 0.75, 0);
+			this.cx.quadraticCurveTo(0, - height * 0.25, (width/2) * 0.75, 0);
+			this.cx.closePath();
+			this.cx.stroke();
+			
+			// draw alien ship bottom half
+			this.cx.beginPath();
+			this.cx.moveTo((-width/2) * 0.75, 0);
+			this.cx.quadraticCurveTo(0, height * 0.25, // control
+									(width/2) * 0.75, 0); // goal
+			this.cx.closePath();
+			this.cx.stroke();
+			
+			// draw alien ship hatch
+			this.cx.beginPath();
+			this.cx.moveTo(-0.125*width, - height * 0.125);
+			this.cx.quadraticCurveTo(0, - height * 0.5, // control
+									 0.125*width, - height * 0.125) // goal
+			// move back to path begin position so closePath doesn't
+			// draw horizontal line
+			this.cx.moveTo(-0.125*width, - height * 0.125);
+			this.cx.closePath();
+			this.cx.stroke();
+			
+			this.cx.restore();
 		}
 	}; 
 };
@@ -544,7 +583,10 @@ Player.prototype.act = function(step, level, keys) {
 };
 Player.prototype.shoot = function(step, level, keys) {	
 	if (keys.space && this.gunsReady >= 100) {
-			level.actors.push(new Missile(this.pos, this.velocity, this.orient));
+			level.actors.push(new Missile({
+				'initialPos': this.pos,
+				'orient': this.orient
+				}));
 		this.gunsReady = 0; //this forces a delay after firing 
 	}
 };
@@ -572,7 +614,7 @@ function Alien({pos = new Vector(300,0),
 				velocity = new Vector(200,0),
 				gunsReady = 0} = {}) {
 	this.pos = pos;
-	this.size = new Vector(15, 20);
+	this.size = new Vector(30, 30);
 	this.hitRadius = Math.max(this.size.x, this.size.y) / 2;
 	this.velocity = velocity; 	// I treat this as a constant for now, like a
 								// scaler instead of something with i and j
@@ -600,12 +642,16 @@ Alien.prototype.shoot = function(step, level) {
 		var hyp = Math.hypot(run, rise); 
 		console.log('Rise, run: ', rise, run);
 
-		var alienMissile = new Missile(this.pos, 0, 0);
-		alienMissile.velocity.x = (run/hyp) * 20;
-		alienMissile.velocity.y = (rise/hyp) * 20;
-		level.actors.push(alienMissile);
-		
 		console.log('---end---');
+
+		var alienMissile = new Missile({
+			'initialPos': this.pos,
+			'orient': 0,
+			'velocity': new Vector((run/hyp) * 5, (rise/hyp) * 5)
+			});
+		//alienMissile.velocity.x = (run/hyp) * 20;
+		//alienMissile.velocity.y = (rise/hyp) * 20;
+		level.actors.push(alienMissile);
 		
 		this.gunsReady = 0;
 	}
@@ -617,12 +663,14 @@ Alien.prototype.updatePosition = function(step) {
 	this.pos.y += Math.sin(this.cycle * 2 * Math.PI) * this.velocity.x * step; 
 };
 
-function Missile(initialPos, velocity, orient) {
+function Missile({	initialPos = new Vector(0,0),
+					orient = 0,
+					velocity = undefined} = {}) {
 	this.pos = initialPos; //CanvasDisplay draws missiles beyond pos, in the opposite direction of orient (missiles have their body 'tail' behind their pos
 	this.size = new Vector(5, 10);
 	this.orient = orient;
-	this.velocity = new Vector(Math.cos(this.orient) * 5,
-								Math.sin(this.orient) * 5);
+	this.velocity = velocity || new Vector(	Math.cos(this.orient) * 5,
+											Math.sin(this.orient) * 5);
 	this.distTravel = 0;
 }
 Missile.prototype.type = "missile";
