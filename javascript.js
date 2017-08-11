@@ -545,7 +545,7 @@ Player.prototype.act = function(step, level, keys) {
 Player.prototype.shoot = function(step, level, keys) {	
 	if (keys.space && this.gunsReady >= 100) {
 			level.actors.push(new Missile({
-				'pos': this.pos,
+				'initialPos': this.pos,
 				'orient': this.orient
 				}));
 		this.gunsReady = 0; //this forces a delay after firing 
@@ -603,12 +603,16 @@ Alien.prototype.shoot = function(step, level) {
 		var hyp = Math.hypot(run, rise); 
 		console.log('Rise, run: ', rise, run);
 
-		var alienMissile = new Missile(this.pos, 0, 0);
-		alienMissile.velocity.x = (run/hyp) * 20;
-		alienMissile.velocity.y = (rise/hyp) * 20;
-		level.actors.push(alienMissile);
-		
 		console.log('---end---');
+
+		var alienMissile = new Missile({
+			'initialPos': this.pos,
+			'orient': 0,
+			'velocity': new Vector((run/hyp) * 5, (rise/hyp) * 5)
+			});
+		//alienMissile.velocity.x = (run/hyp) * 20;
+		//alienMissile.velocity.y = (rise/hyp) * 20;
+		level.actors.push(alienMissile);
 		
 		this.gunsReady = 0;
 	}
@@ -620,12 +624,14 @@ Alien.prototype.updatePosition = function(step) {
 	this.pos.y += Math.sin(this.cycle * 2 * Math.PI) * this.velocity.x * step; 
 };
 
-function Missile(initialPos, velocity, orient) {
+function Missile({	initialPos = new Vector(0,0),
+					orient = 0,
+					velocity = undefined} = {}) {
 	this.pos = initialPos; //CanvasDisplay draws missiles beyond pos, in the opposite direction of orient (missiles have their body 'tail' behind their pos
 	this.size = new Vector(5, 10);
 	this.orient = orient;
-	this.velocity = new Vector(Math.cos(this.orient) * 5,
-								Math.sin(this.orient) * 5);
+	this.velocity = velocity || new Vector(	Math.cos(this.orient) * 5,
+											Math.sin(this.orient) * 5);
 	this.distTravel = 0;
 }
 Missile.prototype.type = "missile";
