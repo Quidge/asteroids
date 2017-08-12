@@ -394,22 +394,36 @@ Level.prototype.spawnStageEnemies = function(stage) {
 	}
 };
 Level.prototype.resolveCollision = function(actor, collision) {
-	if (!collision)
+	// don't do anything if no collision or collision is "safe"
+	if (!collision || 
+		((actor.createdByType == collision.type)
+			&& collision != "wall")) {
 		return false;
+	}
 	if (actor.type == "player" && collision.type == "asteroid") {
 		this.status = -1; //-1 means lost; default (running) is 0
 	}
-	if (actor.type == "missile" && collision.type == "asteroid") {
-		this.removeActor(actor);
-		// getChildren returns array of children asteroids or false 
-		// if asteroid is too small
-		var children = collision.getChildren();
-		if (children) {
-			for (var i = 0; i < children.length; i++)
-				this.actors.push(children[i]);	
+	if (actor.type == "missile") {
+		if (collision.type == "asteroid") {
+			// getChildren returns array of children asteroids or false 
+			// if asteroid is too small
+			var children = collision.getChildren();
+			if (children) {
+				for (var i = 0; i < children.length; i++) {
+					this.actors.push(children[i]);
+				}
+			}
+			// if actor is missile, and originally from player, add points	
+			if (actor.createdByType == "player") {
+				this.playerPoints += this.calcPointVal(collision);
+			}
 		}
-		this.playerPoints += this.calcPointVal(collision);
-		this.removeActor(collision);
+		if (collision.type == "player") {
+			this.status = -1; 
+			// this will only happen if collisions aren't "safe"
+		}
+		this.removeActor(actor); // finally, remove the missile
+		this.removeActor(collision); // finally, remove the collision
 	}
 	// if wall is tripped, capture how much the actor has gone past the wall
 	// (that is overStep)
