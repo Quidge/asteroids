@@ -861,6 +861,32 @@ var GAME_STAGES = [
 	}
 ]
 
+var GAME_STAGES_ALT = Object.create(null);
+GAME_STAGES_ALT = {
+	1: {'asteroids': {	'qty': 1,
+						'nextEnemyTime': 20
+					},
+		'aliens': 	{	'qty': 1,
+						'nextEnemyTime': 30
+					}
+		},
+	2: {'asteroids': {	'qty': 3,
+						'nextEnemyTime': 10
+					},
+		'aliens': 	{	'qty': 3,
+						'nextEnemyTime': 20
+					}
+		},
+	3: {'asteroids': {	'qty': 5,
+						'nextEnemyTime': 20
+					},
+		'aliens': 	{	'qty': 5,
+						'nextEnemyTime': 20
+					}
+		} 
+
+}
+
 // end helper stuff
 
 runGame(CanvasDisplay, GAME_STAGES);
