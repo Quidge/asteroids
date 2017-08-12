@@ -259,6 +259,7 @@ function Level(stages, player) {
 	this.playerPoints = 0;
 	this.status = 0; // -1 is lost, 0 is running, 1 is won
 	this.elapsedGameTime = 0;
+	this.elapsedStageTime = 0;
 	this.stages = stages;
 	this.currentStage = stages[0];
 	
@@ -370,6 +371,7 @@ Level.prototype.animate = function(step, keys) {
 			this.resolveCollision(actor, this.checkClip(actor));
 		}, this);
 		this.elapsedGameTime += thisStep;
+		this.elapsedStageTime += thisStep;
 		// levelUp
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
@@ -401,6 +403,11 @@ Level.prototype.animate = function(step, keys) {
 		} else
 			this.status = 1;
 	}
+};
+Level.prototype.getEnemyQue = function() {
+	var que = [];
+	
+	return que;
 };
 Level.prototype.spawnStageEnemies = function(stage) {
 	// spawn in asteroids
