@@ -343,10 +343,7 @@ Level.prototype.removeActor = function(actor) {
 };
 Level.prototype.checkForEnemies = function(actorArray) {
 	function test(element) {
-		if (element.type == "asteroid")
-			return true;
-		else 
-			return false;
+		return element.type != "player";
 	}
 	return actorArray.some(test);
 }
@@ -394,10 +391,9 @@ Level.prototype.spawnStageEnemies = function(stage) {
 	}
 };
 Level.prototype.resolveCollision = function(actor, collision) {
-	// don't do anything if no collision or collision is "safe"
+	// don't do anything if no collision, or, collision is "safe" and not "wall"
 	if (!collision || 
-		((actor.createdByType == collision.type)
-			&& collision != "wall")) {
+		((actor.createdByType == collision.type) && collision != "wall")) {
 		return false;
 	}
 	if (actor.type == "player" && collision.type == "asteroid") {
@@ -422,8 +418,8 @@ Level.prototype.resolveCollision = function(actor, collision) {
 			this.status = -1; 
 			// this will only happen if collisions aren't "safe"
 		}
-		this.removeActor(actor); // finally, remove the missile
-		this.removeActor(collision); // finally, remove the collision
+		this.removeActor(actor); // finally, remove the missile actor
+		this.removeActor(collision); // finally, remove the collision actor
 	}
 	// if wall is tripped, capture how much the actor has gone past the wall
 	// (that is overStep)
