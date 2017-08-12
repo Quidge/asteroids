@@ -23,7 +23,6 @@
 * resolveCollision(actor, collision) does stuff to actor based on the collision object
 * calcPointVal(actor) returns a rounded number that is based on the size of the actor
 * checkForEnemies(array) returns true if any elements in the supplied array are asteroid
-* incrementStage(): advances the game stage depending on the gameOptions.difficulty('easy', 'medium', 'hard'); defaults to incrementing by 1
 * spawnStageEnemies(stage) spawns the enemies listed in the arg stage
 
 ## Helper stuff
