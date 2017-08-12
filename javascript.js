@@ -374,6 +374,23 @@ Level.prototype.animate = function(step, keys) {
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
 	}
+	/*
+	Here's what I'm thinking:
+		- have level also hold a elapsedStageTime property
+		- create a new method, getEnemyQue, and call it with elapsedStageTime
+		as an arg
+		- getEnemyQue compares elapsedStageTime, against the stuff in
+		 level.stage, and returns false if nothing is ready to spawn,
+		 otherwise returning a list of enemies to spawn
+		 - invoke spawnStageEnemies with what getEnemyQue returns
+		 
+		 - doing it this way makes it possible to pass through stages
+		 without killing all the intended enemies in the stage. so, a bonus
+		 if you're fast.
+		
+	
+	*/
+	
 	
 	if (!this.checkForEnemies(this.actors)) {
 		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
