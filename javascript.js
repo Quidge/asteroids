@@ -393,7 +393,7 @@ Level.prototype.spawnStageEnemies = function(stage) {
 	// spawn in aliens
 	for (var i = 0; i < stage.aliens; i++) {
 		this.actors.push(new Alien({
-							'pos': new Vector(300, getRandom(-200,200)),
+							'pos': new Vector(300, getRandom(-250,250)),
 							'velocity': new Vector(200, 0)
 							})
 						);
