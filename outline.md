@@ -99,6 +99,7 @@
 * speed
 #### Properties
 * type ("missile")
+* createdByType: undefined if not explicitly set, otherwise set at instantiation (ostensibly to "alien" or "player")
 
 ### Alien
 #### Vars
