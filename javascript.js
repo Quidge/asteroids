@@ -386,8 +386,17 @@ Level.prototype.animate = function(step, keys) {
 	}
 };
 Level.prototype.spawnStageEnemies = function(stage) {
+	// spawn in asteroids
 	for (var i = 0; i < stage.asteroids; i++) {
 		this.actors.push(this.getRandomAsteroid());
+	}
+	// spawn in aliens
+	for (var i = 0; i < stage.aliens; i++) {
+		this.actors.push(new Alien({
+							'pos': new Vector(300, getRandom(-200,200)),
+							'velocity': new Vector(200, 0)
+							})
+						);
 	}
 };
 Level.prototype.resolveCollision = function(actor, collision) {
@@ -829,17 +838,27 @@ function runGame(Display, stages) {
 	var level = new Level(stages, player);
 	level.actors.push(player);
 	level.spawnStageEnemies(level.stages[0]);
-	level.actors.push(new Alien());
-
 
 	runLevel(level, Display);
 }
 
 var GAME_STAGES = [
-	{'asteroids': 1},
-	{'asteroids': 3},
-	{'asteroids': 5},
-	{'asteroids': 7}
+	{	
+		'asteroids': 1,
+		'aliens': 1
+	},
+	{
+		'asteroids': 3,
+		'aliens': 2
+	},
+	{
+		'asteroids': 5,
+		'aliens': 3
+	},
+	{
+		'asteroids': 7,
+		'aliens': 4
+	}
 ]
 
 // end helper stuff
