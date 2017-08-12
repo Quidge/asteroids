@@ -455,9 +455,6 @@ Level.prototype.getRandomAsteroid = function() {
 	
 	return new Asteroid(properties);
 };
-Level.prototype.enemyTimer = function(elapsedTime) {
-	var difficulty = gameOptions.difficulty || 'easy';
-};
 
 function Asteroid(
 	// set defaults using destructuring
