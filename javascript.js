@@ -450,15 +450,16 @@ Level.prototype.parseStage = function(stageObject) {
 }; 
 Level.prototype.getEnemyQue = function(elapsedStageTime, parsedStage) {
 	var que = [];
-	for (var i = 0; i < parsedStage.length; i++) {
-		var enemy = parsedStage[i];
+	var updatedStage = parsedStage;
+	for (var i = 0; i < updatedStage.length; i++) {
+		var enemy = updatedStage[i];
 		if (elapsedStageTime > enemy.spawnTime &&
 			!enemy.spawned) {
 			que.push(enemy.enemyType);
 			enemy.spawned = true;
 		}
 	}
-	return que;
+	return {'que': que, 'updatedParsedStage': updatedStage};
 };
 Level.prototype.spawnStageEnemies = function(stage) {
 	// spawn in asteroids
@@ -914,8 +915,8 @@ function runGame(Display, stages) {
 	level.actors.push(player);
 	level.spawnStageEnemies(level.stages[0]);
 	
-	console.log(level.parseStage(GAME_STAGES_ALT['2']));
-	level.getEnemyQue(35, level.parseStage(GAME_STAGES_ALT['2']))
+	console.log(level.getEnemyQue(35, level.parseStage(GAME_STAGES_ALT['2'])));
+	
 
 	runLevel(level, Display);
 }
