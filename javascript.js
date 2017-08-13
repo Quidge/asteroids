@@ -448,8 +448,16 @@ Level.prototype.parseStage = function(stageObject) {
 	return parsedStage;
 
 }; 
-Level.prototype.getEnemyQue = function() {
+Level.prototype.getEnemyQue = function(elapsedStageTime, parsedStage) {
 	var que = [];
+	for (var i = 0; i < parsedStage.length; i++) {
+		var enemy = parsedStage[i];
+		if (elapsedStageTime > enemy.spawnTime &&
+			!enemy.spawned) {
+			que.push(enemy.enemyType);
+			enemy.spawned = true;
+		}
+	}
 	return que;
 };
 Level.prototype.spawnStageEnemies = function(stage) {
@@ -907,6 +915,7 @@ function runGame(Display, stages) {
 	level.spawnStageEnemies(level.stages[0]);
 	
 	console.log(level.parseStage(GAME_STAGES_ALT['2']));
+	level.getEnemyQue(35, level.parseStage(GAME_STAGES_ALT['2']))
 
 	runLevel(level, Display);
 }
