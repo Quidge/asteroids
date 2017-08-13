@@ -347,7 +347,7 @@ Level.prototype.checkForEnemies = function(actorArray) {
 		return element.type != "player";
 	}
 	return actorArray.some(test);
-}
+};
 
 var maxStep = 0.05;
 
