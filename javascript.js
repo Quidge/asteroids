@@ -262,6 +262,7 @@ function Level(stages, player) {
 	this.elapsedStageTime = 0;
 	this.stages = stages;
 	this.currentStage = stages[0];
+	this.parsedStage = this.parseStage(stages['1']);
 	
 	this.player = player;
 }
@@ -392,8 +393,13 @@ Level.prototype.animate = function(step, keys) {
 		
 	
 	*/
+	var enemyUpdate = this.getEnemyQue(this.elapsedStageTime, this.parsedStage);
+	console.log(this.elapsedStageTime, enemyUpdate);
+	var newEnemies = this.spawnStageEnemies(enemyUpdate.que);
+	newEnemies.forEach(function(enemy) {this.actors.push(enemy)}.bind(this));
 	
-	
+	this.parsedStage = enemyUpdate.updatedParsedStage;
+	/*
 	if (!this.checkForEnemies(this.actors)) {
 		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
 		console.log(nextStage);
@@ -402,7 +408,7 @@ Level.prototype.animate = function(step, keys) {
 			this.currentStage = nextStage;
 		} else
 			this.status = 1;
-	}
+	}*/
 };
 Level.prototype.parseStage = function(stageObject) {
 	/* this returns an array of every actor that is setup to be spawned
@@ -461,7 +467,21 @@ Level.prototype.getEnemyQue = function(elapsedStageTime, parsedStage) {
 	}
 	return {'que': que, 'updatedParsedStage': updatedStage};
 };
-Level.prototype.spawnStageEnemies = function(stage) {
+Level.prototype.spawnStageEnemies = function(list) {
+	var enemies = [];
+	for (var i = 0; i < list.length; i++) {
+		if (list[i] == 'asteroid') {
+			enemies.push(this.getRandomAsteroid());
+		} else if (list[i] == 'alien') {
+			enemies.push(new Alien({'pos': new Vector(300, getRandom(-250,250)),
+									'velocity': new Vector(200, 0)
+									})
+						);
+		}
+	}
+	return enemies;
+};
+/*Level.prototype.spawnStageEnemies = function(stage) {
 	// spawn in asteroids
 	for (var i = 0; i < stage.asteroids; i++) {
 		this.actors.push(this.getRandomAsteroid());
@@ -474,7 +494,7 @@ Level.prototype.spawnStageEnemies = function(stage) {
 							})
 						);
 	}
-};
+};*/
 Level.prototype.resolveCollision = function(actor, collision) {
 	// don't do anything if no collision, or, collision is "safe" and not "wall"
 	if (!collision || 
@@ -913,15 +933,15 @@ function runGame(Display, stages) {
 	var player = new Player(new Vector(0,0));
 	var level = new Level(stages, player);
 	level.actors.push(player);
-	level.spawnStageEnemies(level.stages[0]);
+	//level.spawnStageEnemies(level.stages[0]);
 	
-	console.log(level.getEnemyQue(35, level.parseStage(GAME_STAGES_ALT['2'])));
+	//console.log(level.getEnemyQue(35, level.parseStage(GAME_STAGES_ALT['2'])));
 	
 
 	runLevel(level, Display);
 }
 
-var GAME_STAGES = [
+/*var GAME_STAGES = [
 	{	
 		'asteroids': 1,
 		'aliens': 1
@@ -938,7 +958,7 @@ var GAME_STAGES = [
 		'asteroids': 7,
 		'aliens': 4
 	}
-]
+]*/
 
 var GAME_STAGES_ALT = Object.create(null);
 GAME_STAGES_ALT = {
@@ -968,4 +988,4 @@ GAME_STAGES_ALT = {
 
 // end helper stuff
 
-runGame(CanvasDisplay, GAME_STAGES);
+runGame(CanvasDisplay, GAME_STAGES_ALT);
