@@ -404,9 +404,52 @@ Level.prototype.animate = function(step, keys) {
 			this.status = 1;
 	}
 };
+Level.prototype.parseStage = function(stageObject) {
+	/* this returns an array of every actor that is setup to be spawned
+	into the stage, with the timeStamp that that actor should be added in
+	also the is a boolean for every actor, to indicate if it has been spawned
+	yet
+	
+	expected format for stageObject:
+	
+	'enemyType': 		{	'qty': #,
+							'nextEnemyTime': # in seconds},
+	'nextEnemyType':	{	'qty': #,
+							'nextEnemyTime': # in seconds},
+	'etc': {...}
+	
+	desired sample array format to return:
+	
+	parsedStage = 	[	{	'enemyType': 'alien',
+							'spawnTime': 20,
+							'spawned': false	}, 
+						{	'enemyType': 'asteroid',
+							' spawnTime = 20,
+							'spawned': false	},
+						{etc...}
+				 	];
+	
+	*/
+	
+	var parsedStage = [];
+	for (enemyType in stageObject) {
+		var lastSpawn = 0;
+		for (var i = 0; i < stageObject[enemyType].qty; i++) {
+			var enemy = Object.create(null);
+			enemy.enemyType = enemyType;
+			enemy.spawnTime = stageObject[enemyType].nextEnemyTime + lastSpawn;
+			lastSpawn += stageObject[enemyType].nextEnemyTime;
+			enemy.spawned = false;
+			
+			parsedStage.push(enemy);
+		}
+	}
+	
+	return parsedStage;
+
+}; 
 Level.prototype.getEnemyQue = function() {
 	var que = [];
-	
 	return que;
 };
 Level.prototype.spawnStageEnemies = function(stage) {
@@ -862,6 +905,8 @@ function runGame(Display, stages) {
 	var level = new Level(stages, player);
 	level.actors.push(player);
 	level.spawnStageEnemies(level.stages[0]);
+	
+	console.log(level.parseStage(GAME_STAGES_ALT['2']));
 
 	runLevel(level, Display);
 }
@@ -887,24 +932,24 @@ var GAME_STAGES = [
 
 var GAME_STAGES_ALT = Object.create(null);
 GAME_STAGES_ALT = {
-	1: {'asteroids': {	'qty': 1,
+	1: {'asteroid': {	'qty': 1,
 						'nextEnemyTime': 20
 					},
-		'aliens': 	{	'qty': 1,
+		'alien': 	{	'qty': 1,
 						'nextEnemyTime': 30
 					}
 		},
-	2: {'asteroids': {	'qty': 3,
+	2: {'asteroid': {	'qty': 3,
 						'nextEnemyTime': 10
 					},
-		'aliens': 	{	'qty': 3,
+		'alien': 	{	'qty': 3,
 						'nextEnemyTime': 20
 					}
 		},
-	3: {'asteroids': {	'qty': 5,
+	3: {'asteroid': {	'qty': 5,
 						'nextEnemyTime': 20
 					},
-		'aliens': 	{	'qty': 5,
+		'alien': 	{	'qty': 5,
 						'nextEnemyTime': 20
 					}
 		} 
