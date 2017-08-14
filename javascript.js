@@ -389,6 +389,37 @@ Level.prototype.animate = function(step, keys) {
 	
 	*/
 	
+	/* OLD VERSION
+	var enemyUpdate = this.getEnemyQue(	this.elapsedStageTime,
+										this.parsedStage,
+										!this.checkForEnemies(this.actors));
+	
+	console.log(this.elapsedStageTime, enemyUpdate);
+	// add enemies from que
+	var newEnemies = this.spawnStageEnemies(enemyUpdate.que);
+	newEnemies.forEach(function(enemy) {this.actors.push(enemy)}.bind(this));
+	
+	// update interntal stageObject
+	this.parsedStage = enemyUpdate.updatedParsedStage;
+	
+	// if no new enemies in que even with a force push, AND checkForEnemies 
+	// fails, the level has ended 
+	if (enemyUpdate.que.length == 0 && !this.checkForEnemies(this.actors)) {
+		this.currentStageCounter++;
+		var nextStage = this.parseStage(this.stages[this.currentStageCounter]);
+		this.parsedStage = nextStage;
+		this.elapsedStageTime = 0;
+		console.log(nextStage);
+		
+		// if parseStage returns nothing (no enemies to display), for the 
+		// nextStage, then you have won
+		if (nextStage.length == 0) {
+			this.status = 1;
+		}
+	}*/
+	
+	//NEW VERSION, with destructuring (not finished 8/14)
+	
 	var enemyUpdate = this.getEnemyQue(	this.elapsedStageTime,
 										this.parsedStage,
 										!this.checkForEnemies(this.actors));
@@ -416,6 +447,7 @@ Level.prototype.animate = function(step, keys) {
 			this.status = 1;
 		}
 	}
+
 	
 	/* 	old style, doesn't work anymore; code is clean though so i'm keeping
 		for reference
