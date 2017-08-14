@@ -262,8 +262,9 @@ function Level(stages, player) {
 	this.elapsedStageTime = 0;
 	this.stages = stages;
 	this.currentStage = stages[0];
-	this.parsedStage = this.parseStage(stages['1']);
-	
+	this.currentStageCounter = 1;
+	this.parsedStage = this.parseStage(stages[this.currentStageCounter]);
+
 	this.player = player;
 }
 
@@ -404,13 +405,35 @@ Level.prototype.animate = function(step, keys) {
 		if checkForEnemies == false && 
 	
 	*/
-	/*
-	var enemyUpdate = this.getEnemyQue(this.elapsedStageTime, this.parsedStage);
+	
+	var enemyUpdate = this.getEnemyQue(	this.elapsedStageTime,
+										this.parsedStage,
+										!this.checkForEnemies(this.actors));
+	
 	console.log(this.elapsedStageTime, enemyUpdate);
+	// add enemies from que
 	var newEnemies = this.spawnStageEnemies(enemyUpdate.que);
 	newEnemies.forEach(function(enemy) {this.actors.push(enemy)}.bind(this));
 	
-	this.parsedStage = enemyUpdate.updatedParsedStage;*/
+	// update interntal stageObject
+	this.parsedStage = enemyUpdate.updatedParsedStage;
+	
+	// if no new enemies in que even with a force push, AND checkForEnemies 
+	// fails, the level has ended 
+	if (enemyUpdate.que.length == 0 && !this.checkForEnemies(this.actors)) {
+		this.currentStageCounter++;
+		var nextStage = this.parseStage(this.stages[this.currentStageCounter]);
+		this.parsedStage = nextStage;
+		this.elapsedStageTime = 0;
+		console.log(nextStage);
+		
+		// if parseStage returns nothing (no enemies to display), for the 
+		// nextStage, then you have won
+		if (nextStage.length == 0) {
+			this.status = 1;
+		}
+	}
+	
 	/*
 	if (!this.checkForEnemies(this.actors)) {
 		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
@@ -999,7 +1022,7 @@ GAME_STAGES_ALT = {
 	1: {'asteroid': {	'qty': 1,
 						'nextEnemyTime': 20
 					},
-		'alien': 	{	'qty': 1,
+		'alien': 	{	'qty': 0,
 						'nextEnemyTime': 30
 					}
 		},
@@ -1016,7 +1039,7 @@ GAME_STAGES_ALT = {
 		'alien': 	{	'qty': 5,
 						'nextEnemyTime': 20
 					}
-		} 
+		}
 
 }
 
