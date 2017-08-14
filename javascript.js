@@ -393,12 +393,24 @@ Level.prototype.animate = function(step, keys) {
 		
 	
 	*/
+	
+	/*
+	Process:
+		- Commpare elapsedStageTime with parsedStage and, if anything needs to 
+		be spanwed, generate a toSpawn que
+		if toSpawn que isn't empty:
+			- Spawn the que
+			- Update parsedStage to know that spawnQue enemies have been spawned
+		if checkForEnemies == false && 
+	
+	*/
+	/*
 	var enemyUpdate = this.getEnemyQue(this.elapsedStageTime, this.parsedStage);
 	console.log(this.elapsedStageTime, enemyUpdate);
 	var newEnemies = this.spawnStageEnemies(enemyUpdate.que);
 	newEnemies.forEach(function(enemy) {this.actors.push(enemy)}.bind(this));
 	
-	this.parsedStage = enemyUpdate.updatedParsedStage;
+	this.parsedStage = enemyUpdate.updatedParsedStage;*/
 	/*
 	if (!this.checkForEnemies(this.actors)) {
 		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
@@ -436,7 +448,7 @@ Level.prototype.parseStage = function(stageObject) {
 				 	];
 	
 	*/
-	
+		
 	var parsedStage = [];
 	for (enemyType in stageObject) {
 		var lastSpawn = 0;
@@ -450,13 +462,15 @@ Level.prototype.parseStage = function(stageObject) {
 			parsedStage.push(enemy);
 		}
 	}
-	
 	return parsedStage;
 
 }; 
-Level.prototype.getEnemyQue = function(elapsedStageTime, parsedStage) {
+Level.prototype.getEnemyQue = function(elapsedStageTime, parsedStage, forceSpawn = false) {
 	var que = [];
 	var updatedStage = parsedStage;
+	
+	// pumps enemies to que if elapsedStageTime is adequate
+	// also updates updatedStage if something is pushed to que
 	for (var i = 0; i < updatedStage.length; i++) {
 		var enemy = updatedStage[i];
 		if (elapsedStageTime > enemy.spawnTime &&
@@ -465,6 +479,23 @@ Level.prototype.getEnemyQue = function(elapsedStageTime, parsedStage) {
 			enemy.spawned = true;
 		}
 	}
+	
+	// forced enemy pushing (this pumps something into que even if
+	// elapsedStageTime isn't adequate
+	
+	if (forceSpawn) {  
+		
+		updatedStage.sort(function(a, b) {return a.spawnTime - b.spawnTime})
+		var nextEnemy = updatedStage.find(function(enemy) {
+			return enemy.spawned == false;
+		});
+		// if something is found, add it to the spawnQue and update updatedStage
+		if (nextEnemy) {
+			que.push(nextEnemy.enemyType);
+			nextEnemy.spawned = true
+		};
+	}
+	
 	return {'que': que, 'updatedParsedStage': updatedStage};
 };
 Level.prototype.spawnStageEnemies = function(list) {
@@ -935,7 +966,10 @@ function runGame(Display, stages) {
 	level.actors.push(player);
 	//level.spawnStageEnemies(level.stages[0]);
 	
-	//console.log(level.getEnemyQue(35, level.parseStage(GAME_STAGES_ALT['2'])));
+	//console.log('getEnemyQue passed: ', 0, 'GAME_STAGES_ALT["2"]', true);
+	//console.log(level.parseStage(GAME_STAGES_ALT['2']));
+	//console.log(level.getEnemyQue(0, level.parseStage(GAME_STAGES_ALT['2']), true));
+	//level.parseStage(GAME_STAGES_ALT['2']);
 	
 
 	runLevel(level, Display);
