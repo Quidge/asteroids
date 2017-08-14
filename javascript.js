@@ -53,11 +53,12 @@ CanvasDisplay.prototype.drawPoints = function() {
 };
 CanvasDisplay.prototype.drawCurrentStage = function() {
 	var stageText;
-	if (this.level.currentStage)
-		stageText = 'stage: ' 
-					+ (this.level.stages.indexOf(this.level.currentStage) + 1);
-	else
+	if (this.level.status == 0)
+		stageText = 'stage: ' + this.level.currentStageCounter;
+	else if (this.level.status == 1)
 		stageText = 'winner winner chicken dinner';
+	else
+		stageText = 'damn';
 	
 	this.cx.fillStyel = "red";
 	this.cx.textAlign = "right";
@@ -261,7 +262,6 @@ function Level(stages, player) {
 	this.elapsedGameTime = 0;
 	this.elapsedStageTime = 0;
 	this.stages = stages;
-	this.currentStage = stages[0];
 	this.currentStageCounter = 1;
 	this.parsedStage = this.parseStage(stages[this.currentStageCounter]);
 
@@ -377,24 +377,7 @@ Level.prototype.animate = function(step, keys) {
 		// levelUp
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
-	}
-	/*
-	Here's what I'm thinking:
-		- have level also hold a elapsedStageTime property
-		- create a new method, getEnemyQue, and call it with elapsedStageTime
-		as an arg
-		- getEnemyQue compares elapsedStageTime, against the stuff in
-		 level.stage, and returns false if nothing is ready to spawn,
-		 otherwise returning a list of enemies to spawn
-		 - invoke spawnStageEnemies with what getEnemyQue returns
-		 
-		 - doing it this way makes it possible to pass through stages
-		 without killing all the intended enemies in the stage. so, a bonus
-		 if you're fast.
-		
-	
-	*/
-	
+	}	
 	/*
 	Process:
 		- Commpare elapsedStageTime with parsedStage and, if anything needs to 
@@ -434,7 +417,9 @@ Level.prototype.animate = function(step, keys) {
 		}
 	}
 	
-	/*
+	/* 	old style, doesn't work anymore; code is clean though so i'm keeping
+		for reference
+		
 	if (!this.checkForEnemies(this.actors)) {
 		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
 		console.log(nextStage);
