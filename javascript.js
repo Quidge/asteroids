@@ -374,72 +374,36 @@ Level.prototype.animate = function(step, keys) {
 		}, this);
 		this.elapsedGameTime += thisStep;
 		this.elapsedStageTime += thisStep;
-		// levelUp
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
 	}	
-	/*
-	Process:
-		- Commpare elapsedStageTime with parsedStage and, if anything needs to 
-		be spanwed, generate a toSpawn que
-		if toSpawn que isn't empty:
-			- Spawn the que
-			- Update parsedStage to know that spawnQue enemies have been spawned
-		if checkForEnemies == false && 
 	
-	*/
+	// getEnemyQue returns an object that looks like this: 
+	// { que: [], updatedParsedStage: [] }  
+	// expecting this, I set some variables to the getEnemyQue's return with
+	// destructuring
 	
-	/* OLD VERSION
-	var enemyUpdate = this.getEnemyQue(	this.elapsedStageTime,
+	var {	que: spawnQue, 
+			updatedParsedStage: updatedStage} = this.getEnemyQue(
+										this.elapsedStageTime,
 										this.parsedStage,
-										!this.checkForEnemies(this.actors));
+										!this.checkForEnemies(this.actors)
+										);
 	
-	console.log(this.elapsedStageTime, enemyUpdate);
-	// add enemies from que
-	var newEnemies = this.spawnStageEnemies(enemyUpdate.que);
-	newEnemies.forEach(function(enemy) {this.actors.push(enemy)}.bind(this));
+	// add enemies from spawnQue
+	this.spawnStageEnemies(spawnQue)
+			.forEach(function(enemy) {this.actors.push(enemy)}.bind(this));
 	
-	// update interntal stageObject
-	this.parsedStage = enemyUpdate.updatedParsedStage;
+	// update internal stage object to reflect new spawns
+	this.parsedStage = updatedStage;
 	
 	// if no new enemies in que even with a force push, AND checkForEnemies 
 	// fails, the level has ended 
-	if (enemyUpdate.que.length == 0 && !this.checkForEnemies(this.actors)) {
+	if (spawnQue.length == 0 && !this.checkForEnemies(this.actors)) {
 		this.currentStageCounter++;
 		var nextStage = this.parseStage(this.stages[this.currentStageCounter]);
 		this.parsedStage = nextStage;
 		this.elapsedStageTime = 0;
-		console.log(nextStage);
-		
-		// if parseStage returns nothing (no enemies to display), for the 
-		// nextStage, then you have won
-		if (nextStage.length == 0) {
-			this.status = 1;
-		}
-	}*/
-	
-	//NEW VERSION, with destructuring (not finished 8/14)
-	
-	var enemyUpdate = this.getEnemyQue(	this.elapsedStageTime,
-										this.parsedStage,
-										!this.checkForEnemies(this.actors));
-	
-	console.log(this.elapsedStageTime, enemyUpdate);
-	// add enemies from que
-	var newEnemies = this.spawnStageEnemies(enemyUpdate.que);
-	newEnemies.forEach(function(enemy) {this.actors.push(enemy)}.bind(this));
-	
-	// update interntal stageObject
-	this.parsedStage = enemyUpdate.updatedParsedStage;
-	
-	// if no new enemies in que even with a force push, AND checkForEnemies 
-	// fails, the level has ended 
-	if (enemyUpdate.que.length == 0 && !this.checkForEnemies(this.actors)) {
-		this.currentStageCounter++;
-		var nextStage = this.parseStage(this.stages[this.currentStageCounter]);
-		this.parsedStage = nextStage;
-		this.elapsedStageTime = 0;
-		console.log(nextStage);
 		
 		// if parseStage returns nothing (no enemies to display), for the 
 		// nextStage, then you have won
@@ -447,20 +411,6 @@ Level.prototype.animate = function(step, keys) {
 			this.status = 1;
 		}
 	}
-
-	
-	/* 	old style, doesn't work anymore; code is clean though so i'm keeping
-		for reference
-		
-	if (!this.checkForEnemies(this.actors)) {
-		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
-		console.log(nextStage);
-		if (nextStage) {
-			this.spawnStageEnemies(nextStage);
-			this.currentStage = nextStage;
-		} else
-			this.status = 1;
-	}*/
 };
 Level.prototype.parseStage = function(stageObject) {
 	/* this returns an array of every actor that is setup to be spawned
@@ -532,6 +482,7 @@ Level.prototype.getEnemyQue = function(elapsedStageTime, parsedStage, forceSpawn
 		// if something is found, add it to the spawnQue and update updatedStage
 		if (nextEnemy) {
 			que.push(nextEnemy.enemyType);
+			// update the parsedStage to reflect that it has been spawned
 			nextEnemy.spawned = true
 		};
 	}
@@ -552,20 +503,6 @@ Level.prototype.spawnStageEnemies = function(list) {
 	}
 	return enemies;
 };
-/*Level.prototype.spawnStageEnemies = function(stage) {
-	// spawn in asteroids
-	for (var i = 0; i < stage.asteroids; i++) {
-		this.actors.push(this.getRandomAsteroid());
-	}
-	// spawn in aliens
-	for (var i = 0; i < stage.aliens; i++) {
-		this.actors.push(new Alien({
-							'pos': new Vector(300, getRandom(-250,250)),
-							'velocity': new Vector(200, 0)
-							})
-						);
-	}
-};*/
 Level.prototype.resolveCollision = function(actor, collision) {
 	// don't do anything if no collision, or, collision is "safe" and not "wall"
 	if (!collision || 
