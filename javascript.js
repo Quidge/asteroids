@@ -53,11 +53,12 @@ CanvasDisplay.prototype.drawPoints = function() {
 };
 CanvasDisplay.prototype.drawCurrentStage = function() {
 	var stageText;
-	if (this.level.currentStage)
-		stageText = 'stage: ' 
-					+ (this.level.stages.indexOf(this.level.currentStage) + 1);
-	else
+	if (this.level.status == 0)
+		stageText = 'stage: ' + this.level.currentStageCounter;
+	else if (this.level.status == 1)
 		stageText = 'winner winner chicken dinner';
+	else
+		stageText = 'damn';
 	
 	this.cx.fillStyel = "red";
 	this.cx.textAlign = "right";
@@ -154,6 +155,49 @@ CanvasDisplay.prototype.drawActors = function() {
 			this.cx.closePath();
 			this.cx.stroke();
 		}
+		
+		if (actor.type == "alien") {
+			var width = actor.size.x;
+			var height = actor.size.y;
+			
+			this.cx.save();
+			this.cx.translate(aX, aY);
+			
+			//draw alien ship outer bevel
+			this.cx.beginPath();
+			this.cx.moveTo(-width/2, 0);
+			this.cx.lineTo(width/2, 0);
+			this.cx.closePath();
+			this.cx.stroke();
+			
+			//draw alien ship top half
+			this.cx.beginPath();
+			this.cx.moveTo((-width/2) * 0.75, 0);
+			this.cx.quadraticCurveTo(0, - height * 0.25, (width/2) * 0.75, 0);
+			this.cx.closePath();
+			this.cx.stroke();
+			
+			// draw alien ship bottom half
+			this.cx.beginPath();
+			this.cx.moveTo((-width/2) * 0.75, 0);
+			this.cx.quadraticCurveTo(0, height * 0.25, // control
+									(width/2) * 0.75, 0); // goal
+			this.cx.closePath();
+			this.cx.stroke();
+			
+			// draw alien ship hatch
+			this.cx.beginPath();
+			this.cx.moveTo(-0.125*width, - height * 0.125);
+			this.cx.quadraticCurveTo(0, - height * 0.5, // control
+									 0.125*width, - height * 0.125) // goal
+			// move back to path begin position so closePath doesn't
+			// draw horizontal line
+			this.cx.moveTo(-0.125*width, - height * 0.125);
+			this.cx.closePath();
+			this.cx.stroke();
+			
+			this.cx.restore();
+		}
 	}; 
 };
 CanvasDisplay.prototype.drawResolution = function() {
@@ -206,7 +250,7 @@ CanvasDisplay.prototype.drawSplashScreen = function() {
 
 };
 
-function Level(stages) {
+function Level(stages, player) {
 	this.length = 600;
 	this.height = 600;
 	// game state default origin is in center of length and width
@@ -216,8 +260,12 @@ function Level(stages) {
 	this.playerPoints = 0;
 	this.status = 0; // -1 is lost, 0 is running, 1 is won
 	this.elapsedGameTime = 0;
+	this.elapsedStageTime = 0;
 	this.stages = stages;
-	this.currentStage = stages[0];
+	this.currentStageCounter = 1;
+	this.parsedStage = this.parseStage(stages[this.currentStageCounter]);
+
+	this.player = player;
 }
 
 Level.prototype.checkClip = function(actor) {
@@ -298,13 +346,10 @@ Level.prototype.removeActor = function(actor) {
 };
 Level.prototype.checkForEnemies = function(actorArray) {
 	function test(element) {
-		if (element.type == "asteroid")
-			return true;
-		else 
-			return false;
+		return element.type != "player";
 	}
 	return actorArray.some(test);
-}
+};
 
 var maxStep = 0.05;
 
@@ -328,43 +373,166 @@ Level.prototype.animate = function(step, keys) {
 			this.resolveCollision(actor, this.checkClip(actor));
 		}, this);
 		this.elapsedGameTime += thisStep;
-		// levelUp
+		this.elapsedStageTime += thisStep;
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
+	}	
+	
+	// getEnemyQue returns an object that looks like this: 
+	// { que: [], updatedParsedStage: [] }  
+	// expecting this, I set some variables to the getEnemyQue's return with
+	// destructuring
+	
+	var {	que: spawnQue, 
+			updatedParsedStage: updatedStage} = this.getEnemyQue(
+										this.elapsedStageTime,
+										this.parsedStage,
+										!this.checkForEnemies(this.actors)
+										);
+	
+	// add enemies from spawnQue
+	this.spawnStageEnemies(spawnQue)
+			.forEach(function(enemy) {this.actors.push(enemy)}.bind(this));
+	
+	// update internal stage object to reflect new spawns
+	this.parsedStage = updatedStage;
+	
+	// if no new enemies in que even with a force push, AND checkForEnemies 
+	// fails, the level has ended 
+	if (spawnQue.length == 0 && !this.checkForEnemies(this.actors)) {
+		this.currentStageCounter++;
+		var nextStage = this.parseStage(this.stages[this.currentStageCounter]);
+		this.parsedStage = nextStage;
+		this.elapsedStageTime = 0;
+		
+		// if parseStage returns nothing (no enemies to display), for the 
+		// nextStage, then you have won
+		if (nextStage.length == 0) {
+			this.status = 1;
+		}
+	}
+};
+Level.prototype.parseStage = function(stageObject) {
+	/* this returns an array of every actor that is setup to be spawned
+	into the stage, with the timeStamp that that actor should be added in
+	also the is a boolean for every actor, to indicate if it has been spawned
+	yet
+	
+	expected format for stageObject:
+	
+	'enemyType': 		{	'qty': #,
+							'nextEnemyTime': # in seconds},
+	'nextEnemyType':	{	'qty': #,
+							'nextEnemyTime': # in seconds},
+	'etc': {...}
+	
+	desired sample array format to return:
+	
+	parsedStage = 	[	{	'enemyType': 'alien',
+							'spawnTime': 20,
+							'spawned': false	}, 
+						{	'enemyType': 'asteroid',
+							' spawnTime = 20,
+							'spawned': false	},
+						{etc...}
+				 	];
+	
+	*/
+		
+	var parsedStage = [];
+	for (enemyType in stageObject) {
+		var lastSpawn = 0;
+		for (var i = 0; i < stageObject[enemyType].qty; i++) {
+			var enemy = Object.create(null);
+			enemy.enemyType = enemyType;
+			enemy.spawnTime = stageObject[enemyType].nextEnemyTime + lastSpawn;
+			lastSpawn += stageObject[enemyType].nextEnemyTime;
+			enemy.spawned = false;
+			
+			parsedStage.push(enemy);
+		}
+	}
+	return parsedStage;
+
+}; 
+Level.prototype.getEnemyQue = function(elapsedStageTime, parsedStage, forceSpawn = false) {
+	var que = [];
+	var updatedStage = parsedStage;
+	
+	// pumps enemies to que if elapsedStageTime is adequate
+	// also updates updatedStage if something is pushed to que
+	for (var i = 0; i < updatedStage.length; i++) {
+		var enemy = updatedStage[i];
+		if (elapsedStageTime > enemy.spawnTime &&
+			!enemy.spawned) {
+			que.push(enemy.enemyType);
+			enemy.spawned = true;
+		}
 	}
 	
-	if (!this.checkForEnemies(this.actors)) {
-		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
-		console.log(nextStage);
-		if (nextStage) {
-			this.spawnStageEnemies(nextStage);
-			this.currentStage = nextStage;
-		} else
-			this.status = 1;
+	// forced enemy pushing (this pumps something into que even if
+	// elapsedStageTime isn't adequate
+	
+	if (forceSpawn) {  
+		
+		updatedStage.sort(function(a, b) {return a.spawnTime - b.spawnTime})
+		var nextEnemy = updatedStage.find(function(enemy) {
+			return enemy.spawned == false;
+		});
+		// if something is found, add it to the spawnQue and update updatedStage
+		if (nextEnemy) {
+			que.push(nextEnemy.enemyType);
+			// update the parsedStage to reflect that it has been spawned
+			nextEnemy.spawned = true
+		};
 	}
+	
+	return {'que': que, 'updatedParsedStage': updatedStage};
 };
-Level.prototype.spawnStageEnemies = function(stage) {
-	for (var i = 0; i < stage.asteroids; i++) {
-		this.actors.push(this.getRandomAsteroid());
+Level.prototype.spawnStageEnemies = function(list) {
+	var enemies = [];
+	for (var i = 0; i < list.length; i++) {
+		if (list[i] == 'asteroid') {
+			enemies.push(this.getRandomAsteroid());
+		} else if (list[i] == 'alien') {
+			enemies.push(new Alien({'pos': new Vector(300, getRandom(-250,250)),
+									'velocity': new Vector(200, 0)
+									})
+						);
+		}
 	}
+	return enemies;
 };
 Level.prototype.resolveCollision = function(actor, collision) {
-	if (!collision)
+	// don't do anything if no collision, or, collision is "safe" and not "wall"
+	if (!collision || 
+		((actor.createdByType == collision.type) && collision != "wall")) {
 		return false;
+	}
 	if (actor.type == "player" && collision.type == "asteroid") {
 		this.status = -1; //-1 means lost; default (running) is 0
 	}
-	if (actor.type == "missile" && collision.type == "asteroid") {
-		this.removeActor(actor);
-		// getChildren returns array of children asteroids or false 
-		// if asteroid is too small
-		var children = collision.getChildren();
-		if (children) {
-			for (var i = 0; i < children.length; i++)
-				this.actors.push(children[i]);	
+	if (actor.type == "missile") {
+		if (collision.type == "asteroid") {
+			// getChildren returns array of children asteroids or false 
+			// if asteroid is too small
+			var children = collision.getChildren();
+			if (children) {
+				for (var i = 0; i < children.length; i++) {
+					this.actors.push(children[i]);
+				}
+			}
+			// if actor is missile, and originally from player, add points	
+			if (actor.createdByType == "player") {
+				this.playerPoints += this.calcPointVal(collision);
+			}
 		}
-		this.playerPoints += this.calcPointVal(collision);
-		this.removeActor(collision);
+		if (collision.type == "player") {
+			this.status = -1; 
+			// this will only happen if collisions aren't "safe"
+		}
+		this.removeActor(actor); // finally, remove the missile actor
+		this.removeActor(collision); // finally, remove the collision actor
 	}
 	// if wall is tripped, capture how much the actor has gone past the wall
 	// (that is overStep)
@@ -399,9 +567,6 @@ Level.prototype.getRandomAsteroid = function() {
 								20 + Math.abs(200 * rand2));
 	
 	return new Asteroid(properties);
-};
-Level.prototype.enemyTimer = function(elapsedTime) {
-	var difficulty = gameOptions.difficulty || 'easy';
 };
 
 function Asteroid(
@@ -527,7 +692,6 @@ Player.prototype.act = function(step, level, keys) {
 	if (keys.warp) {
 		this.pos = new Vector(Math.floor(300 * getRandom(-1, 1)),
 								Math.floor(300 * getRandom(-1, 1)))
-		console.log(this.pos);
 		this.warping = true;
 	}
 	this.shoot(step, level, keys);
@@ -538,7 +702,11 @@ Player.prototype.act = function(step, level, keys) {
 };
 Player.prototype.shoot = function(step, level, keys) {	
 	if (keys.space && this.gunsReady >= 100) {
-			level.actors.push(new Missile(this.pos, this.velocity, this.orient));
+			level.actors.push(new Missile({
+				'initialPos': this.pos,
+				'orient': this.orient,
+				'createdByType': this.type
+				}));
 		this.gunsReady = 0; //this forces a delay after firing 
 	}
 };
@@ -562,13 +730,64 @@ Player.prototype.updatePosition = function() {
 	this.pos.y = this.pos.y + this.velocity.y;
 };
 
-function Missile(initialPos, velocity, orient) {
+function Alien({pos = new Vector(300,0),
+				velocity = new Vector(200,0),
+				gunsReady = 0} = {}) {
+	this.pos = pos;
+	this.size = new Vector(30, 30);
+	this.hitRadius = Math.max(this.size.x, this.size.y) / 2;
+	this.velocity = velocity; 	// I treat this as a constant for now, like a
+								// scaler instead of something with i and j
+								// components that mean something directionally.
+	this.gunsReady = gunsReady; //less than 1000 means shoot method won't do anything
+	this.cycle = 0; // aliens move in sin wave behavior
+	this.orient = 0;
+}
+
+Alien.prototype.type = "alien";
+Alien.prototype.act = function(step, level) {
+	this.cycle += step;
+	this.shoot(step, level);
+	this.updatePosition(step);
+	this.gunsReady += step * 500;
+};
+Alien.prototype.shoot = function(step, level) {
+	if (this.gunsReady >= 1000) {
+		//figure out what direction to shoot
+		var run = level.player.pos.x - this.pos.x;
+		var rise = level.player.pos.y - this.pos.y;
+		var hyp = Math.hypot(run, rise); 
+
+		var alienMissile = new Missile({
+			'initialPos': this.pos,
+			'orient': 0, 	//this needs to be something other than 0, but i 
+							// can't figure out how to get it
+			'velocity': new Vector((run/hyp) * 5, (rise/hyp) * 5),
+			'createdByType': this.type
+			});
+		level.actors.push(alienMissile);
+		
+		this.gunsReady = 0;
+	}
+};
+Alien.prototype.updatePosition = function(step) {
+	// sin wave behavior, scrolls right to left
+	
+	this.pos.x += this.velocity.x * step;
+	this.pos.y += Math.sin(this.cycle * 2 * Math.PI) * this.velocity.x * step; 
+};
+
+function Missile({	initialPos = new Vector(0,0),
+					orient = 0,
+					velocity = undefined,
+					createdByType = undefined} = {}) {
 	this.pos = initialPos; //CanvasDisplay draws missiles beyond pos, in the opposite direction of orient (missiles have their body 'tail' behind their pos
 	this.size = new Vector(5, 10);
 	this.orient = orient;
-	this.velocity = new Vector(Math.cos(this.orient) * 5,
-								Math.sin(this.orient) * 5);
+	this.velocity = velocity || new Vector(	Math.cos(this.orient) * 5,
+											Math.sin(this.orient) * 5);
 	this.distTravel = 0;
+	this.createdByType = createdByType;
 }
 Missile.prototype.type = "missile";
 Missile.prototype.act = function(step) {
@@ -719,21 +938,38 @@ function runLevel(level, Display) {
 // Asteroid constructor: Asteroid(pos, size, spin, velocity)
 
 function runGame(Display, stages) {
-	var level = new Level(stages);
 	var player = new Player(new Vector(0,0));
+	var level = new Level(stages, player);
 	level.actors.push(player);
-	level.spawnStageEnemies(level.stages[0]);
-
 
 	runLevel(level, Display);
 }
 
-var GAME_STAGES = [
-	{'asteroids': 1},
-	{'asteroids': 3},
-	{'asteroids': 5},
-	{'asteroids': 7}
-]
+var GAME_STAGES = Object.create(null);
+GAME_STAGES = {
+	1: {'asteroid': {	'qty': 1,
+						'nextEnemyTime': 5
+					},
+		'alien': 	{	'qty': 1,
+						'nextEnemyTime': 10
+					}
+		},
+	2: {'asteroid': {	'qty': 3,
+						'nextEnemyTime': 5
+					},
+		'alien': 	{	'qty': 3,
+						'nextEnemyTime': 10
+					}
+		},
+	3: {'asteroid': {	'qty': 5,
+						'nextEnemyTime': 5
+					},
+		'alien': 	{	'qty': 5,
+						'nextEnemyTime': 10
+					}
+		}
+
+}
 
 // end helper stuff
 
