@@ -33,8 +33,29 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
 	this.drawPoints(); // draws playerPoints to top right
+	this.drawLives();
 	this.drawCurrentStage() // writes current stage playerPoints
 };
+CanvasDisplay.prototype.drawLives = function() {
+	var shipSize = {width: 15, height: 20};
+	var xMargin = 10;
+	var yMargin = 10;
+	for (var i = 0; i < this.level.livesLeft; i++) {
+		var xOffset = 20 * i;
+		
+		// each ship is drawn facing north
+		
+		this.cx.beginPath();
+		// top
+		this.cx.moveTo(xMargin + shipSize.width/2 + xOffset, yMargin);
+		// bottom left corner
+		this.cx.lineTo(xMargin + xOffset, yMargin + shipSize.height);
+		// bottom right corner
+		this.cx.lineTo(xMargin + xOffset + shipSize.width, yMargin + shipSize.height);
+		this.cx.closePath();
+		this.cx.stroke();
+	} 
+}
 CanvasDisplay.prototype.clearDisplay = function() {
 	this.cx.clearRect(0, 0, 
 					this.canvas.width, this.canvas.height);
