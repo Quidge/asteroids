@@ -33,8 +33,29 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 		this.drawResolution(); 	// if level.status not 0 (normal running state),
 								// will render some "won" or "lost" overlay
 	this.drawPoints(); // draws playerPoints to top right
+	this.drawLives();
 	this.drawCurrentStage() // writes current stage playerPoints
 };
+CanvasDisplay.prototype.drawLives = function() {
+	var shipSize = {width: 15, height: 20};
+	var xMargin = 10;
+	var yMargin = 10;
+	for (var i = 0; i < this.level.livesLeft; i++) {
+		var xOffset = 20 * i;
+		
+		// each ship is drawn facing north
+		
+		this.cx.beginPath();
+		// top
+		this.cx.moveTo(xMargin + shipSize.width/2 + xOffset, yMargin);
+		// bottom left corner
+		this.cx.lineTo(xMargin + xOffset, yMargin + shipSize.height);
+		// bottom right corner
+		this.cx.lineTo(xMargin + xOffset + shipSize.width, yMargin + shipSize.height);
+		this.cx.closePath();
+		this.cx.stroke();
+	} 
+}
 CanvasDisplay.prototype.clearDisplay = function() {
 	this.cx.clearRect(0, 0, 
 					this.canvas.width, this.canvas.height);
@@ -264,8 +285,11 @@ function Level(stages, player) {
 	this.stages = stages;
 	this.currentStageCounter = 1;
 	this.parsedStage = this.parseStage(stages[this.currentStageCounter]);
-
-	this.player = player;
+	
+	this.livesLeft = 3;
+	this.playerRespawnAt = false; // always either true or future timeStamp
+	
+	this.player = player; // don't remove this; aliens need it for targeting
 }
 
 Level.prototype.checkClip = function(actor) {
@@ -355,6 +379,18 @@ var maxStep = 0.05;
 
 // step will be time since last animation frame
 Level.prototype.animate = function(step, keys) {
+	
+	// deal with player respawning first
+	if (this.playerRespawnAt && 
+		this.elapsedGameTime > this.playerRespawnAt &&
+		// finally, make sure area is safe by running checkClip on a temp Player
+		this.checkClip(new Player(new Vector(0,0))) == false 
+		) {
+		var newPlayer = new Player(new Vector(0,0));
+		this.player = newPlayer;
+		this.actors.unshift(newPlayer);
+		this.playerRespawnAt = false;
+	}
 	
 	while (step > 0) {
 		var thisStep = Math.min(maxStep, step);
@@ -503,6 +539,19 @@ Level.prototype.spawnStageEnemies = function(list) {
 	}
 	return enemies;
 };
+Level.prototype.resolvePlayerDeath = function(respawnDelay = 5) {
+	if (this.livesLeft > 0) {
+		this.livesLeft -= 1;
+		
+		// remove player from actors list
+		var playerIndex = this.actors.findIndex(function(e) {return e.type == "player"});
+		this.actors.splice(playerIndex, 1);
+		// setup future respawn time
+		this.playerRespawnAt = this.elapsedGameTime + respawnDelay;
+	} else {
+		this.status = -1;
+	}
+};
 Level.prototype.resolveCollision = function(actor, collision) {
 	// don't do anything if no collision, or, collision is "safe" and not "wall"
 	if (!collision || 
@@ -510,7 +559,7 @@ Level.prototype.resolveCollision = function(actor, collision) {
 		return false;
 	}
 	if (actor.type == "player" && collision.type == "asteroid") {
-		this.status = -1; //-1 means lost; default (running) is 0
+		this.resolvePlayerDeath(5); // does livesLeft check, takes future respawnDelay as arg
 	}
 	if (actor.type == "missile") {
 		if (collision.type == "asteroid") {
@@ -528,7 +577,7 @@ Level.prototype.resolveCollision = function(actor, collision) {
 			}
 		}
 		if (collision.type == "player") {
-			this.status = -1; 
+			this.resolvePlayerDeath(5); // does livesLeft check, takes future respawnDelay as arg 
 			// this will only happen if collisions aren't "safe"
 		}
 		this.removeActor(actor); // finally, remove the missile actor
