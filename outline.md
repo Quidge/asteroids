@@ -7,9 +7,12 @@
 * origin (middle of length and height)
 * status (game running, game ended, etc; default is null (running)
 * elapsedGameTime (total gametime that has been 'stepped'
+* elapsedStageTime (total time spent on current stage, gets reset back to 0 after advancing stages)
 * stages: holds the array of game stages
 * currentStage: holds the current 'stage' or 'level' that the player is on
 * player: direct reference to the controlled Player object, doesn't go through this.actors. (I don't feel comfortable always assuming player will be actors[0]). 
+* playerRespawnAt (either false or a timeStamp that is usually at some point ahead of gameElapsedTime)
+* livesLeft (player lives remaining)
 
 #### Methods:
 * animate  
