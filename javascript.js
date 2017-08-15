@@ -640,18 +640,19 @@ Asteroid.prototype.getChildren = function() {
 		
 		// velocity magnitude children will escape at
 		var escapeMag = 5;
+		// child asteroids A and B will escape with higher magnitudes
 		
 		childA.velocity = parent.velocity.plus(new Vector(
 			Math.cos(childA.orient - 0.5*Math.PI) * escapeMag,
 			Math.sin(childA.orient - 0.5*Math.PI) * escapeMag)
 		);
 		childB.velocity = parent.velocity.plus(new Vector(
-			Math.cos(childB.orient + 0.75*Math.PI) * escapeMag,
-			Math.sin(childB.orient + 0.75*Math.PI) * escapeMag)
+			Math.cos(childB.orient + 0.75*Math.PI) * escapeMag * 2,
+			Math.sin(childB.orient + 0.75*Math.PI) * escapeMag * 2)
 		);
 		childC.velocity = parent.velocity.plus(new Vector(
-			Math.cos(childC.orient + 0.25*Math.PI) * escapeMag,
-			Math.sin(childC.orient + 0.25*Math.PI) * escapeMag)
+			Math.cos(childC.orient + 0.25*Math.PI) * escapeMag * 2,
+			Math.sin(childC.orient + 0.25*Math.PI) * escapeMag * 2)
 		);
 		
 		childA.spin = parent.spin * 0.1;
