@@ -941,57 +941,31 @@ function runGame(Display, stages) {
 	var player = new Player(new Vector(0,0));
 	var level = new Level(stages, player);
 	level.actors.push(player);
-	//level.spawnStageEnemies(level.stages[0]);
-	
-	//console.log('getEnemyQue passed: ', 0, 'GAME_STAGES_ALT["2"]', true);
-	//console.log(level.parseStage(GAME_STAGES_ALT['2']));
-	//console.log(level.getEnemyQue(0, level.parseStage(GAME_STAGES_ALT['2']), true));
-	//level.parseStage(GAME_STAGES_ALT['2']);
-	
 
 	runLevel(level, Display);
 }
 
-/*var GAME_STAGES = [
-	{	
-		'asteroids': 1,
-		'aliens': 1
-	},
-	{
-		'asteroids': 3,
-		'aliens': 2
-	},
-	{
-		'asteroids': 5,
-		'aliens': 3
-	},
-	{
-		'asteroids': 7,
-		'aliens': 4
-	}
-]*/
-
-var GAME_STAGES_ALT = Object.create(null);
-GAME_STAGES_ALT = {
+var GAME_STAGES = Object.create(null);
+GAME_STAGES = {
 	1: {'asteroid': {	'qty': 1,
-						'nextEnemyTime': 20
+						'nextEnemyTime': 5
 					},
-		'alien': 	{	'qty': 0,
-						'nextEnemyTime': 30
+		'alien': 	{	'qty': 1,
+						'nextEnemyTime': 10
 					}
 		},
 	2: {'asteroid': {	'qty': 3,
-						'nextEnemyTime': 10
+						'nextEnemyTime': 5
 					},
 		'alien': 	{	'qty': 3,
-						'nextEnemyTime': 20
+						'nextEnemyTime': 10
 					}
 		},
 	3: {'asteroid': {	'qty': 5,
-						'nextEnemyTime': 20
+						'nextEnemyTime': 5
 					},
 		'alien': 	{	'qty': 5,
-						'nextEnemyTime': 20
+						'nextEnemyTime': 10
 					}
 		}
 
@@ -999,4 +973,4 @@ GAME_STAGES_ALT = {
 
 // end helper stuff
 
-runGame(CanvasDisplay, GAME_STAGES_ALT);
+runGame(CanvasDisplay, GAME_STAGES);
