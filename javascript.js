@@ -53,11 +53,12 @@ CanvasDisplay.prototype.drawPoints = function() {
 };
 CanvasDisplay.prototype.drawCurrentStage = function() {
 	var stageText;
-	if (this.level.currentStage)
-		stageText = 'stage: ' 
-					+ (this.level.stages.indexOf(this.level.currentStage) + 1);
-	else
+	if (this.level.status == 0)
+		stageText = 'stage: ' + this.level.currentStageCounter;
+	else if (this.level.status == 1)
 		stageText = 'winner winner chicken dinner';
+	else
+		stageText = 'damn';
 	
 	this.cx.fillStyel = "red";
 	this.cx.textAlign = "right";
@@ -259,9 +260,11 @@ function Level(stages, player) {
 	this.playerPoints = 0;
 	this.status = 0; // -1 is lost, 0 is running, 1 is won
 	this.elapsedGameTime = 0;
+	this.elapsedStageTime = 0;
 	this.stages = stages;
-	this.currentStage = stages[0];
-	
+	this.currentStageCounter = 1;
+	this.parsedStage = this.parseStage(stages[this.currentStageCounter]);
+
 	this.player = player;
 }
 
@@ -346,7 +349,7 @@ Level.prototype.checkForEnemies = function(actorArray) {
 		return element.type != "player";
 	}
 	return actorArray.some(test);
-}
+};
 
 var maxStep = 0.05;
 
@@ -370,34 +373,135 @@ Level.prototype.animate = function(step, keys) {
 			this.resolveCollision(actor, this.checkClip(actor));
 		}, this);
 		this.elapsedGameTime += thisStep;
-		// levelUp
+		this.elapsedStageTime += thisStep;
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
-	}
+	}	
 	
-	if (!this.checkForEnemies(this.actors)) {
-		var nextStage = this.stages[this.stages.indexOf(this.currentStage) + 1];
-		console.log(nextStage);
-		if (nextStage) {
-			this.spawnStageEnemies(nextStage);
-			this.currentStage = nextStage;
-		} else
+	// getEnemyQue returns an object that looks like this: 
+	// { que: [], updatedParsedStage: [] }  
+	// expecting this, I set some variables to the getEnemyQue's return with
+	// destructuring
+	
+	var {	que: spawnQue, 
+			updatedParsedStage: updatedStage} = this.getEnemyQue(
+										this.elapsedStageTime,
+										this.parsedStage,
+										!this.checkForEnemies(this.actors)
+										);
+	
+	// add enemies from spawnQue
+	this.spawnStageEnemies(spawnQue)
+			.forEach(function(enemy) {this.actors.push(enemy)}.bind(this));
+	
+	// update internal stage object to reflect new spawns
+	this.parsedStage = updatedStage;
+	
+	// if no new enemies in que even with a force push, AND checkForEnemies 
+	// fails, the level has ended 
+	if (spawnQue.length == 0 && !this.checkForEnemies(this.actors)) {
+		this.currentStageCounter++;
+		var nextStage = this.parseStage(this.stages[this.currentStageCounter]);
+		this.parsedStage = nextStage;
+		this.elapsedStageTime = 0;
+		
+		// if parseStage returns nothing (no enemies to display), for the 
+		// nextStage, then you have won
+		if (nextStage.length == 0) {
 			this.status = 1;
+		}
 	}
 };
-Level.prototype.spawnStageEnemies = function(stage) {
-	// spawn in asteroids
-	for (var i = 0; i < stage.asteroids; i++) {
-		this.actors.push(this.getRandomAsteroid());
+Level.prototype.parseStage = function(stageObject) {
+	/* this returns an array of every actor that is setup to be spawned
+	into the stage, with the timeStamp that that actor should be added in
+	also the is a boolean for every actor, to indicate if it has been spawned
+	yet
+	
+	expected format for stageObject:
+	
+	'enemyType': 		{	'qty': #,
+							'nextEnemyTime': # in seconds},
+	'nextEnemyType':	{	'qty': #,
+							'nextEnemyTime': # in seconds},
+	'etc': {...}
+	
+	desired sample array format to return:
+	
+	parsedStage = 	[	{	'enemyType': 'alien',
+							'spawnTime': 20,
+							'spawned': false	}, 
+						{	'enemyType': 'asteroid',
+							' spawnTime = 20,
+							'spawned': false	},
+						{etc...}
+				 	];
+	
+	*/
+		
+	var parsedStage = [];
+	for (enemyType in stageObject) {
+		var lastSpawn = 0;
+		for (var i = 0; i < stageObject[enemyType].qty; i++) {
+			var enemy = Object.create(null);
+			enemy.enemyType = enemyType;
+			enemy.spawnTime = stageObject[enemyType].nextEnemyTime + lastSpawn;
+			lastSpawn += stageObject[enemyType].nextEnemyTime;
+			enemy.spawned = false;
+			
+			parsedStage.push(enemy);
+		}
 	}
-	// spawn in aliens
-	for (var i = 0; i < stage.aliens; i++) {
-		this.actors.push(new Alien({
-							'pos': new Vector(300, getRandom(-250,250)),
-							'velocity': new Vector(200, 0)
-							})
+	return parsedStage;
+
+}; 
+Level.prototype.getEnemyQue = function(elapsedStageTime, parsedStage, forceSpawn = false) {
+	var que = [];
+	var updatedStage = parsedStage;
+	
+	// pumps enemies to que if elapsedStageTime is adequate
+	// also updates updatedStage if something is pushed to que
+	for (var i = 0; i < updatedStage.length; i++) {
+		var enemy = updatedStage[i];
+		if (elapsedStageTime > enemy.spawnTime &&
+			!enemy.spawned) {
+			que.push(enemy.enemyType);
+			enemy.spawned = true;
+		}
+	}
+	
+	// forced enemy pushing (this pumps something into que even if
+	// elapsedStageTime isn't adequate
+	
+	if (forceSpawn) {  
+		
+		updatedStage.sort(function(a, b) {return a.spawnTime - b.spawnTime})
+		var nextEnemy = updatedStage.find(function(enemy) {
+			return enemy.spawned == false;
+		});
+		// if something is found, add it to the spawnQue and update updatedStage
+		if (nextEnemy) {
+			que.push(nextEnemy.enemyType);
+			// update the parsedStage to reflect that it has been spawned
+			nextEnemy.spawned = true
+		};
+	}
+	
+	return {'que': que, 'updatedParsedStage': updatedStage};
+};
+Level.prototype.spawnStageEnemies = function(list) {
+	var enemies = [];
+	for (var i = 0; i < list.length; i++) {
+		if (list[i] == 'asteroid') {
+			enemies.push(this.getRandomAsteroid());
+		} else if (list[i] == 'alien') {
+			enemies.push(new Alien({'pos': new Vector(300, getRandom(-250,250)),
+									'velocity': new Vector(200, 0)
+									})
 						);
+		}
 	}
+	return enemies;
 };
 Level.prototype.resolveCollision = function(actor, collision) {
 	// don't do anything if no collision, or, collision is "safe" and not "wall"
@@ -837,29 +941,35 @@ function runGame(Display, stages) {
 	var player = new Player(new Vector(0,0));
 	var level = new Level(stages, player);
 	level.actors.push(player);
-	level.spawnStageEnemies(level.stages[0]);
 
 	runLevel(level, Display);
 }
 
-var GAME_STAGES = [
-	{	
-		'asteroids': 1,
-		'aliens': 1
-	},
-	{
-		'asteroids': 3,
-		'aliens': 2
-	},
-	{
-		'asteroids': 5,
-		'aliens': 3
-	},
-	{
-		'asteroids': 7,
-		'aliens': 4
-	}
-]
+var GAME_STAGES = Object.create(null);
+GAME_STAGES = {
+	1: {'asteroid': {	'qty': 1,
+						'nextEnemyTime': 5
+					},
+		'alien': 	{	'qty': 1,
+						'nextEnemyTime': 10
+					}
+		},
+	2: {'asteroid': {	'qty': 3,
+						'nextEnemyTime': 5
+					},
+		'alien': 	{	'qty': 3,
+						'nextEnemyTime': 10
+					}
+		},
+	3: {'asteroid': {	'qty': 5,
+						'nextEnemyTime': 5
+					},
+		'alien': 	{	'qty': 5,
+						'nextEnemyTime': 10
+					}
+		}
+
+}
 
 // end helper stuff
 

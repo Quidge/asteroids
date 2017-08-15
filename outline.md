@@ -16,14 +16,19 @@
   * runs if actions this.status != null
   * runs actor.act on all actors
   * runs level.checkClip on all actors stores (adds to playerPoints if missile collides with asteroid)
+  * runs getEnemyQue which returns a que of enemies to populate and an updated stage (reflecting the new enemies that have been given to que (if any))
+  * runs spawnStageEnemies and adds any que enemies from getEnemyQue to the actors list
+  * finally, runs checks to determine if game should move on to the next stage
 * transport (takes actor, new Vector): changes actor.pos to second arg Vector
 * checkClip (takes actor) returns actor.type (or "wall") if actor.hitRadius is touching anything   
+* parseStage(stageObject): builds an array of enemies from the stage passed to it
+* getEnemyQue(elapsedStageTime, parsedStage, forceSpawn = true/false): returns a que of what to spawn, and an updated parsedStage that reflects any additions to the que
+* spawnStageEnemies(simple array list of enemies): given a simple of things to spawn (["asteroid", "alien", "alien"]), spawnStageEnemies creates the actual enemy Actor Objects and returns them in an array
 * getRandomAsteroid: returns new Asteroid with random attributes (though pos is always from one of the walls)
 * removeActor(actor) if actor is in this.actors array, remove actor from array and return true else return false
 * resolveCollision(actor, collision) does stuff to actor based on the collision object
 * calcPointVal(actor) returns a rounded number that is based on the size of the actor
 * checkForEnemies(array) returns true if any elements in the supplied array are asteroid
-* incrementStage(): advances the game stage depending on the gameOptions.difficulty('easy', 'medium', 'hard'); defaults to incrementing by 1
 * spawnStageEnemies(stage) spawns the enemies listed in the arg stage
 
 ## Helper stuff
