@@ -519,18 +519,23 @@ Level.prototype.animate = function(step, keys) {
 	}
 };
 Level.prototype.parseStage = function(stageObject) {
-	/* this returns an array of every actor that is setup to be spawned
-	into the stage, with the timeStamp that that actor should be added in
-	also the is a boolean for every actor, to indicate if it has been spawned
-	yet
+	/* 
+	This method 'decompresses' a condensed stage to an to an array where each 
+	element represents a different enemy that should be spawned for that stage. 
 	
-	expected format for stageObject:
+	I wanted a way to be able to write levels quickly. I wanted a way to spawn 
+	in various quantities of enemies at various delays, and I did want to have 
+	to write those details for each enemy. 
 	
-	'enemyType': 		{	'qty': #,
-							'nextEnemyTime': # in seconds},
-	'nextEnemyType':	{	'qty': #,
-							'nextEnemyTime': # in seconds},
-	'etc': {...}
+	expected format for stageObject parameter:
+	
+	{
+		'enemyType': 		{	'qty': #,
+								'nextEnemyTime': # in seconds},
+		'nextEnemyType':	{	'qty': #,
+								'nextEnemyTime': # in seconds},
+		'etc': {...}
+	}
 	
 	desired sample array format to return:
 	
