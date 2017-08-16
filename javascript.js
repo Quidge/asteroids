@@ -2,8 +2,8 @@
 // CanvasDisplay constructor
 function CanvasDisplay(parent, level) {
 	this.canvas = document.createElement("canvas");
-	this.canvas.width = 600;
-	this.canvas.height = 600;
+	this.canvas.width = level.length;
+	this.canvas.height = level.height;
 	parent.appendChild(this.canvas);
 	this.cx = this.canvas.getContext("2d");
 	
@@ -252,7 +252,7 @@ CanvasDisplay.prototype.drawResolution = function() {
 	}
 };
 CanvasDisplay.prototype.drawSplashScreen = function() {
-	this.cx.globalAlpha = 0.8;
+	this.cx.globalAlpha = 0.6;
 	this.cx.fillStyle = "black";
 	this.cx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 	this.cx.globalAlpha = 1.0;
