@@ -388,16 +388,19 @@ var maxStep = 0.05;
 // step will be time since last animation frame
 Level.prototype.animate = function(step, keys) {
 	
-	// deal with player respawning first
-	if (this.playerRespawnAt && 
-		this.elapsedGameTime > this.playerRespawnAt &&
-		// finally, make sure area is safe by running checkClip on a temp Player
-		this.checkClip(new Player(new Vector(0,0))) == false 
-		) {
-		var newPlayer = new Player(new Vector(0,0));
-		this.player = newPlayer;
-		this.actors.unshift(newPlayer);
-		this.playerRespawnAt = false;
+	// if player needs to respawn
+	if (this.playerRespawnAt && this.elapsedGameTime > this.playerRespawnAt) {
+		
+		var testSpawn = new Player(new Vector(0,0));
+		testSpawn.hitRadius = testSpawn.hitRadius * 5;
+		// run a check with testSpawn (normal player with 5x the normal
+		// hitRadius)
+		if (this.checkClip(testSpawn) == false) {
+			var newPlayer = new Player(new Vector(0,0));
+			this.player = newPlayer;
+			this.actors.unshift(newPlayer);
+			this.playerRespawnAt = false;
+		}
 	}
 	
 	while (step > 0) {
