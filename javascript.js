@@ -679,10 +679,14 @@ Level.prototype.resolveCollision = function(actor, collision) {
 	}
 };
 Level.prototype.getRandomAsteroid = function() {
+
+	/* 	This is agreeably stupid, but I needed random Asteroid generation, I
+		wrote it early on, and it works.
+	*/
 	var properties = Object.create(null);
 	
-	var rand1 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
-		var rand2 = Math.random() < 0.5 ? -1 * Math.random() : 1 * Math.random();
+	var rand1 = getRandom(-1, 1);
+	var rand2 = getRandom(-1, 1);
 	
 	if (rand1 > rand2)
 		properties.pos = new Vector(300*rand1, 300);
@@ -741,7 +745,7 @@ Asteroid.prototype.getChildren = function() {
 	if (Math.min(this.size.x, this.size.y) > 15) {
 		
 		var childAsteroids = [];
-		var parent = this;
+		var parent = this; // makes it easier to reason about
 		
 		var childA = Object.create(null);
 		var childB = Object.create(null);
@@ -768,7 +772,8 @@ Asteroid.prototype.getChildren = function() {
 		
 		// velocity magnitude children will escape at
 		var escapeMag = 5;
-		// child asteroids A and B will escape with higher magnitudes
+		
+		// smaller child asteroids A and B will escape with higher magnitudes
 		
 		childA.velocity = parent.velocity.plus(new Vector(
 			Math.cos(childA.orient - 0.5*Math.PI) * escapeMag,
@@ -797,11 +802,11 @@ Asteroid.prototype.getChildren = function() {
 		return false;
 };
 Asteroid.prototype.updatePosition = function(step) {
-	this.pos.x = this.pos.x + this.velocity.x * step;
-	this.pos.y = this.pos.y + this.velocity.y * step;
+	this.pos.x += this.velocity.x * step;
+	this.pos.y += this.velocity.y * step;
 };
 Asteroid.prototype.rotate = function(step) {
-	this.orient = this.orient + this.spin * step;
+	this.orient += this.spin * step;
 };
 
 function Player(pos) {
