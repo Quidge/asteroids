@@ -414,18 +414,22 @@ Level.prototype.checkForEnemies = function(actorArray) {
 	return actorArray.some(test);
 };
 
-var maxStep = 0.05;
+var maxStep = 0.05; // this sets the maximum possible leap in animation time
 
 // step will be time since last animation frame
 Level.prototype.animate = function(step, keys) {
 	
-	// if player needs to respawn
+	/*
+	This loop checks if the player needs to respawn and if the player is READY 
+	to respawn. If those conditions are met, create an instance of Player to use 
+	as a dummy spawn. Set the hitRadius of the testSpawn Player instance to 5x 
+	normal so that the spawn area will be relatively safer.
+	*/ 
 	if (this.playerRespawnAt && this.elapsedGameTime > this.playerRespawnAt) {
 		
 		var testSpawn = new Player(new Vector(0,0));
 		testSpawn.hitRadius = testSpawn.hitRadius * 5;
-		// run a check with testSpawn (normal player with 5x the normal
-		// hitRadius)
+
 		if (this.checkClip(testSpawn) == false) {
 			var newPlayer = new Player(new Vector(0,0));
 			this.player = newPlayer;
@@ -433,7 +437,8 @@ Level.prototype.animate = function(step, keys) {
 			this.playerRespawnAt = false;
 		}
 	}
-	
+	// remember, step will never be more than maxStep which was set as a global 
+	// var
 	while (step > 0) {
 		var thisStep = Math.min(maxStep, step);
 		this.actors.forEach(function(actor) {
@@ -445,21 +450,26 @@ Level.prototype.animate = function(step, keys) {
 				this.removeActor(actor);
 				return;
 			}
-			// resolve collisions with check clip
-				// checkClip returns either false, "wall", or the actual object
-				// of whatever actor collided with
+			// Then, resolve collisions with checkClip (which returns either 
+			// false, "wall", or the collided actor object from this.actors
 			this.resolveCollision(actor, this.checkClip(actor));
-		}, this);
+		}, this); // pass in this so the inside loop has access to level scope
+		
 		this.elapsedGameTime += thisStep;
 		this.elapsedStageTime += thisStep;
 		// by decrementing step this way, animation frame times are chopped
 		step -= thisStep;
 	}	
 	
-	// getEnemyQue returns an object that looks like this: 
-	// { que: [], updatedParsedStage: [] }  
-	// expecting this, I set some variables to the getEnemyQue's return with
-	// destructuring
+	/* 
+	After all actors have moved around and resolved their collisions, figure
+	out if anything needs to spawn.
+	
+	getEnemyQue returns an object that looks like this: 
+		{ 	que: ["alien", "asteroid", "etc"], 
+			updatedParsedStage: ["stageParse version of an enemy", "another 
+								one"] }
+	*/
 	
 	var {	que: spawnQue, 
 			updatedParsedStage: updatedStage} = this.getEnemyQue(
@@ -468,15 +478,33 @@ Level.prototype.animate = function(step, keys) {
 										!this.checkForEnemies(this.actors)
 										);
 	
-	// add enemies from spawnQue
+	/*	Add enemies from spawnQue. 
+		spawnStageEnemies takes strings like "asteroid" or "alien" and turns 
+		them into real Asteroid or Alien objects. It returns an array of the 
+		objects it has created.
+	*/
 	this.spawnStageEnemies(spawnQue)
 			.forEach(function(enemy) {this.actors.push(enemy)}.bind(this));
 	
-	// update internal stage object to reflect new spawns
+	/*	Old parsed stage will have an individual actor's spawned property set to
+		false. updatedStage is just a copy of parsedStage when the spawned 
+		actors have had their spawned property set to true. So, update the 
+		internal parsedStage.
+	*/
 	this.parsedStage = updatedStage;
 	
-	// if no new enemies in que even with a force push, AND checkForEnemies 
-	// fails, the level has ended 
+	/*	Finally, animate will check to see if it needs to move to the next 
+		stage. 
+		
+		If no new actors are in spawnQue, and checkForEnemies returns false, the 
+		level has nothing else to spawn and the next stage can begin. Also, 
+		reset the elapsedStageTime back to 0.
+		
+		If the next stage does not HAVE any enemies, then the next stage does 
+		not exist and the player has completed the last stage. The game is over 
+		and the player has won.
+	*/
+	
 	if (spawnQue.length == 0 && !this.checkForEnemies(this.actors)) {
 		this.currentStageCounter++;
 		var nextStage = this.parseStage(this.stages[this.currentStageCounter]);
