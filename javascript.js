@@ -658,9 +658,13 @@ Level.prototype.resolveCollision = function(actor, collision) {
 		this.removeActor(actor); // finally, remove the missile actor
 		this.removeActor(collision); // finally, remove the collision actor
 	}
-	// if wall is tripped, capture how much the actor has gone past the wall
-	// (that is overStep)
-	// switch tripped axis coord and add back overstep * a slight bump
+	/* 	This is confusing. By using this I'm basically 'cheating' the physics 
+		engine. Logic is this: 
+			- if wall is tripped, capture how much the actor has gone past the 
+			wall (overStep).
+			- Then 'wrap' the actor around to the other side of the axis + a 
+			little bump (overStep * modifier). 
+	*/
 	if (collision == "wall") {
 		if (Math.abs(actor.pos.x) > this.length/2) {
 			var overStep = actor.pos.x % (this.length/2);
