@@ -318,11 +318,14 @@ Level.prototype.checkClip = function(actor) {
 	
 	var clipType = false;
 	
-	// base state is not touching anything, hence false
-	// first check if passed actor is touching anything in level.actors and
-	// assign clipType to other.type
-	// then check if actor is touching wall and assign "wall" to clipType if so
-	// finally, return clipType
+	/*
+	- If there is hitRadius overlap between param actor and any actor in the 
+	this.actors array OTHER than itself, return the other actor.
+	- Finally, check if actor has hit an outer boundary of the level. If so, 
+	return 'wall'.
+	- If no collisions with anything detected, return clipType (which is default 
+	set to false).
+	*/
 	
 	for (var i = 0; i < this.actors.length; i++) {
 		var other = this.actors[i];
@@ -332,6 +335,8 @@ Level.prototype.checkClip = function(actor) {
 			var ax = actor.pos.x, ay = actor.pos.y;
 			var ox = other.pos.x, oy = other.pos.y;
 			
+			// if either actor or other doesn't have a hit radius, act like 
+			// hitRadius is 0
 			var ar, or; 
 			if (actor.hitRadius) 
 				ar = actor.hitRadius;
@@ -340,10 +345,15 @@ Level.prototype.checkClip = function(actor) {
 				or = other.hitRadius;
 			else or = 0;
 				
-			// This is a lot of logic. The pattern is this:
-			// If actor and other were in only one dimension (x axis), would
-			// their hit radii overlap? If yes, check to see if they would
-			// also overlap in the y dimension. 
+			/*
+			The hitRadius overlap pattern is this:
+				
+				If actor and other were in only one dimension (x axis), would
+				their hit radii overlap? 
+					- If no, then they do not overlap.
+					- If yes, check to see if they would
+					also overlap in the y dimension.
+			*/
 							
 			// check right side (actorX > otherX)
 			if (ax > ox && ax - ar < ox + or) {
@@ -365,10 +375,16 @@ Level.prototype.checkClip = function(actor) {
 		}
 	}
 	
-	// check for wall collision
-	// Wall collisions don't have to check for hit radius. This reduces the 
-	// sense of "teleporting" that objects can generate when moving from once
-	// side of the level to the other.
+	/*
+	Finally, check for wall collision. Because this happens at the end of the 
+	loop, it can and will take priority over other collisions and checkClip will 
+	return "wall" if an actor would collide with both a wall and another actor.
+	
+	Also, wall collisions don't have to check for hit radius. This reduces the 
+	sense of "teleporting" that objects can generate when moving from once side 
+	of the level to the other.
+	*/
+	
 	if (Math.abs(actor.pos.x) > this.length/2 ||
 		Math.abs(actor.pos.y) > this.height/2)
 		clipType = "wall";
@@ -384,6 +400,7 @@ Level.prototype.removeActor = function(actor) {
 	var index = this.actors.indexOf(actor);
 	if (index > -1) {
 		this.actors.splice(index, 1);
+		// splice instead of delete because splice causes arrays to reindex
 		return true;
 	}
 	else {
