@@ -29,6 +29,7 @@ CanvasDisplay.prototype.drawFrame = function(step) {
 	this.drawBackground();
 	// both ship and asteroids are actors
 	this.drawActors(); 
+	// splashScreen is the initial pre-game screen with control instructions
 	if (this.splashScreen)
 		this.drawSplashScreen();
 	if (this.level.status != 0 || this.isPaused)
@@ -98,12 +99,15 @@ CanvasDisplay.prototype.drawActors = function() {
 		this.cx.strokeStyle = this.colors.actors;
 		
 		var actor = this.level.actors[i];
-		// x and y of actor pos
+		// x and y of actor pos, offset by level origin and abbreviated
 		var aX = this.level.origin.x + actor.pos.x;
 		var aY = this.level.origin.y + actor.pos.y;
 		
 		// draw actor hitRadius (this is only for development)
 		if (gameOptions.showHitRadius) {
+		
+			// drawn relative to actor position
+		
 			this.cx.beginPath();
 			this.cx.arc(aX, aY, actor.hitRadius, 0, 7);
 			this.cx.closePath();
@@ -111,6 +115,9 @@ CanvasDisplay.prototype.drawActors = function() {
 		}
 		
 		if (actor.type == "missile") {
+		
+			// drawn relative to actor position
+		
 			this.cx.beginPath();
 			this.cx.moveTo(aX, aY);
 			this.cx.lineTo(aX - Math.cos(actor.orient) * actor.size.y,
@@ -120,6 +127,9 @@ CanvasDisplay.prototype.drawActors = function() {
 		}
 				
 		if (actor.type == "player") {
+		
+			// drawn relative to actor position using translate and rotate
+		
 			this.cx.save(); 
 			this.cx.translate(aX, aY); //offset to actor location
 			this.cx.rotate(actor.orient + 0.5*Math.PI);
@@ -136,6 +146,10 @@ CanvasDisplay.prototype.drawActors = function() {
 		}
 		
 		if (actor.type == "asteroid") {
+		
+			// NOT drawn relative to actor position. I wanted to try doing this
+			// in absolute positioning because sometimes I want things to take 
+			// far more time. 
 			
 			// Asteroids are rectangles. A rectangle has four corners. The
 			// position of those corners can be found with triangles. 
@@ -183,6 +197,9 @@ CanvasDisplay.prototype.drawActors = function() {
 		}
 		
 		if (actor.type == "alien") {
+		
+			// drawn relative to actor position using translate
+		
 			var width = actor.size.x;
 			var height = actor.size.y;
 			
