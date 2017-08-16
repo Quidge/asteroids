@@ -904,7 +904,7 @@ Alien.prototype.shoot = function(step, level) {
 	}
 };
 Alien.prototype.updatePosition = function(step) {
-	// sin wave behavior, scrolls right to left
+	// sin wave behavior, scrolls left to right
 	
 	this.pos.x += this.velocity.x * step;
 	this.pos.y += Math.sin(this.cycle * 2 * Math.PI) * this.velocity.x * step; 
@@ -914,12 +914,16 @@ function Missile({	initialPos = new Vector(0,0),
 					orient = 0,
 					velocity = undefined,
 					createdByType = undefined} = {}) {
-	this.pos = initialPos; //CanvasDisplay draws missiles beyond pos, in the opposite direction of orient (missiles have their body 'tail' behind their pos
-	this.size = new Vector(5, 10);
+	this.pos = initialPos; 
+	//	CanvasDisplay draws missiles trailing BEHIND position, 
+	// 	in the opposite direction of orient (missiles have their body 'tail' 
+	//	behind their position.
+	this.size = new Vector(5, 10); 	// doesn't really matter, as missiles have 
+									// no hit radius 
 	this.orient = orient;
 	this.velocity = velocity || new Vector(	Math.cos(this.orient) * 5,
 											Math.sin(this.orient) * 5);
-	this.distTravel = 0;
+	this.distTravel = 0; // level.animate removes missiles once distTravel > 400
 	this.createdByType = createdByType;
 }
 Missile.prototype.type = "missile";
@@ -944,6 +948,7 @@ Vector.prototype.times = function(factor) {
 	return new Vector(this.x * factor, this.y * factor);
 };
 
+// returns a floating point between min and max
 function getRandom(min, max) {
 	return Math.random() * (max - min) + min;
 };
@@ -975,19 +980,14 @@ function trackKeys(codes) {
 	}
 	addEventListener("keydown", handler);
 	addEventListener("keyup", handler);
-	/*// special warp functionality, must come after the other two
-	addEventListener("keyup", function(event) {
-		if (event.keyCode == 70)
-			pressed.warp = true;
-		else
-			pressed.warp = false;
-	});*/
 
 	return pressed;
 }
 
 var arrows = trackKeys(arrowCodes);
 
+// Various game options. Maybe in the future this will be editable from outside
+//	the game code.
 var gameOptions = Object.create(null);
 gameOptions = {
 	'showHitRadius': false,
@@ -996,16 +996,15 @@ gameOptions = {
 
 /* Okay, so this part is hard because it's fairly abstracted and uses recursion.
 
-- The escape key alters var running to yes/pausing/no.
-- Animation takes an amount of time (called step), and has Level and Display
+	- The escape key alters var running to yes/pausing/no.
+	- Animation takes an amount of time (called step), and has Level and Display 
 	do their thing with that amount of time.
-	- 	In some cases (game is paused, level status != 0), animation can return
-		false.
-- runAnimation is a wrapper for requestAnimation. It takes a function that
-	expects an amount of time (...like animation). At the end of runAnimation, 
-	it runs itself again. This is the recursion. It will run itself over and 
-	over unless the argument function returns false.
-	
+		- In some cases (game is paused, level status != 0), animation can 
+		return false.
+	- runAnimation is a wrapper for window.requestAnimation. It takes a function 
+		that expects an amount of time (...like animation). At the end of 
+		runAnimation, it runs itself again. This is the recursion. It will run 
+		itself over and over unless the argument function returns false.
 */
 
 function runLevel(level, Display) {
@@ -1028,8 +1027,9 @@ function runLevel(level, Display) {
 	}
 	addEventListener("keydown", handleKey);
 	
-	//splash screen event function; will become deregistered when splash
-	//screen == false;
+	/*	Splash screen event function will become de-registered when splash
+		screen == false;
+	*/
 	function endSplashScreen(event) {
 		if (event.keyCode == 66) { //keyCode 66 is b key
 			display.splashScreen = false;
@@ -1067,8 +1067,6 @@ function runLevel(level, Display) {
 	}
 	runAnimation(animation);
 }
-
-// Asteroid constructor: Asteroid(pos, size, spin, velocity)
 
 function runGame(Display, stages) {
 	var player = new Player(new Vector(0,0));
