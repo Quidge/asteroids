@@ -13,9 +13,9 @@ function CanvasDisplay(parent, level) {
 	this.splashScreen = false;
 	this.level = level;
 	
-	this.colors = {	text: 'rgb(240,240,240)',
-					background: 'rgb(20,20,20)',
-					actors: 'rgb(240,240,240)'}
+	this.colors = {	text: 'rgb(240,240,240)', // almost white
+					background: 'rgb(20,20,20)', // almost black
+					actors: 'rgb(240,240,240)'} // almost white
 					
 	
 } 
@@ -73,7 +73,7 @@ CanvasDisplay.prototype.drawPoints = function() {
 	this.cx.fillStyle = this.colors.text;
 	this.cx.textAlign = "right";
 	this.cx.textBaseline = "top";
-	this.cx.font = "small-caps 700 48px sans-serif";
+	this.cx.font = "small-caps 100 48px sans-serif";
 	
 	this.cx.fillText(this.level.playerPoints, 
 		this.canvas.width - 15, 0);
@@ -90,9 +90,9 @@ CanvasDisplay.prototype.drawCurrentStage = function() {
 	this.cx.fillStyle = this.colors.text;
 	this.cx.textAlign = "right";
 	this.cx.textBaseLine = "top";
-	this.cx.font = "small-caps 700 20px sans-serif";
+	this.cx.font = "small-caps 100 20px sans-serif";
 	
-	// draws underneath player points
+	// draw stageText underneath player points
 	this.cx.fillText(stageText, this.canvas.width - 15, 48);
 };
 CanvasDisplay.prototype.drawActors = function() {
@@ -230,7 +230,7 @@ CanvasDisplay.prototype.drawActors = function() {
 	}; 
 };
 CanvasDisplay.prototype.drawResolution = function() {
-	this.cx.globalAlpha = 0.8;
+	this.cx.globalAlpha = 0.6;
 	this.cx.fillStyle = "black";
 	this.cx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 	this.cx.globalAlpha = 1.0;
