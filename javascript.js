@@ -818,7 +818,7 @@ function Player(pos) {
 	this.accel = gameOptions.playerAccel || 100; 
 	this.orient = 0; //in radians; begin pointing north
 	this.gunsReady = 100; //less than 100 means shoot method won't do anything
-	this.warping = false;
+	this.warping = false; // gets set to true for split second F key is pressed
 }
 Player.prototype.type = "player";
 Player.prototype.act = function(step, level, keys) {
@@ -853,15 +853,14 @@ Player.prototype.turn = function(step, keys) {
 };
 Player.prototype.jet = function(step, keys) {
 	if (keys.up) {
-		var increment = step * this.accel;
-		var jetVelocity = new Vector(Math.cos(this.orient) * increment,
-									Math.sin(this.orient) * increment);
+		var jetVelocity = new Vector(Math.cos(this.orient) * this.accel * step,
+									Math.sin(this.orient) * this.accel * step);
 		this.velocity = this.velocity.plus(jetVelocity);
 	}
 };
 Player.prototype.updatePosition = function() {
-	this.pos.x = this.pos.x + this.velocity.x;
-	this.pos.y = this.pos.y + this.velocity.y;
+	this.pos.x += this.velocity.x;
+	this.pos.y += this.velocity.y;
 };
 
 function Alien({pos = new Vector(300,0),
