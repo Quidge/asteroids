@@ -20,9 +20,6 @@ function CanvasDisplay(parent, level) {
 	
 } 
 // Begin CanvasDisplay methods
-CanvasDisplay.prototype.clear = function() {
-	this.canvas.parentNode.removeChild(this.canvas);
-};
 CanvasDisplay.prototype.drawFrame = function(step) {
 	// step will be the elapsed time since last frame
 	this.animationTime += step; // total elapsed time;
