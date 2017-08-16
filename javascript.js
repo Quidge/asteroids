@@ -13,6 +13,11 @@ function CanvasDisplay(parent, level) {
 	this.splashScreen = false;
 	this.level = level;
 	
+	this.colors = {	text: 'rgb(240,240,240)',
+					background: 'rgb(20,20,20)',
+					actors: 'rgb(240,240,240)'}
+					
+	
 } 
 // Begin CanvasDisplay methods
 CanvasDisplay.prototype.clear = function() {
@@ -61,10 +66,11 @@ CanvasDisplay.prototype.clearDisplay = function() {
 					this.canvas.width, this.canvas.height);
 };
 CanvasDisplay.prototype.drawBackground = function() {
-	this.cx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
+	this.cx.fillStyle = this.colors.background;
+	this.cx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 };
 CanvasDisplay.prototype.drawPoints = function() {
-	this.cx.fillStyle = "red";
+	this.cx.fillStyle = this.colors.text;
 	this.cx.textAlign = "right";
 	this.cx.textBaseline = "top";
 	this.cx.font = "small-caps 700 48px sans-serif";
@@ -81,7 +87,7 @@ CanvasDisplay.prototype.drawCurrentStage = function() {
 	else
 		stageText = 'damn';
 	
-	this.cx.fillStyel = "red";
+	this.cx.fillStyle = this.colors.text;
 	this.cx.textAlign = "right";
 	this.cx.textBaseLine = "top";
 	this.cx.font = "small-caps 700 20px sans-serif";
@@ -91,6 +97,8 @@ CanvasDisplay.prototype.drawCurrentStage = function() {
 };
 CanvasDisplay.prototype.drawActors = function() {
 	for (var i = 0; i < this.level.actors.length; i++) {
+		
+		this.cx.strokeStyle = this.colors.actors;
 		
 		var actor = this.level.actors[i];
 		// x and y of actor pos
@@ -230,7 +238,7 @@ CanvasDisplay.prototype.drawResolution = function() {
 	this.cx.font = "small-caps 700 48px sans-serif"
 	this.cx.textBaseline = "middle";
 	this.cx.textAlign = "center";
-	this.cx.fillStyle = "red";
+	this.cx.fillStyle = this.colors.text;
 	
 	if (this.level.status == -1) {
 		this.cx.fillText("darn. you died.",
@@ -254,7 +262,7 @@ CanvasDisplay.prototype.drawSplashScreen = function() {
 	this.cx.font = "small-caps 700 " + textSize + "px sans-serif"
 	this.cx.textBaseline = "middle";
 	this.cx.textAlign = "center";
-	this.cx.fillStyle = "red";
+	this.cx.fillStyle = this.colors.text;
 	
 	this.cx.fillText("use LEFT and RIGHT keys to STEER",
 		this.canvas.width/2, this.canvas.height/2 + lineHeight * 0);
